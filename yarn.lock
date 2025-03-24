@@ -1973,6 +1973,11 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
+agora-react-native-rtm@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/agora-react-native-rtm/-/agora-react-native-rtm-1.5.1.tgz#e1c1cb3ba330b0f4d553859eb30758874763ee76"
+  integrity sha512-docAyX6O5J0eX8RCRAjtn7wUcks/Fq1v3S0w40fR9zf9k3mm+GLCP5kYiCy16p4h2o6v9JUaDQgUsTP/wv/s4g==
+
 ajv-formats@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-formats/-/ajv-formats-2.1.1.tgz#6e669400659eb74973bbf2e33327180a0996b520"
