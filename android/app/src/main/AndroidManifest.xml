@@ -31,6 +31,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.nerdya.myvideoapp"/>
+        <data android:scheme="exp+my-video-app"/>
       </intent-filter>
     </activity>
   </application>
