@@ -32,7 +32,7 @@ const getPermission = async () => {
   }
 };
 
-const VideoCallScreen = () => {
+export default function CallDemoScreen() {
   // Get parameters from the previous screen
   const params = useLocalSearchParams();
 
@@ -259,5 +259,3 @@ const styles = StyleSheet.create({
   head: { fontSize: 20 },
   info: { backgroundColor: '#ffffe0', paddingHorizontal: 8, color: '#0000ff' },
 });
-
-export default VideoCallScreen;
