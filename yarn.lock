@@ -6193,6 +6193,16 @@ react-native-is-edge-to-edge@^1.1.6:
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.6.tgz#69ec13f70d76e9245e275eed4140d0873a78f902"
   integrity sha512-1pHnFTlBahins6UAajXUqeCOHew9l9C2C8tErnpGC3IyLJzvxD+TpYAixnCbrVS52f7+NvMttbiSI290XfwN0w==
 
+react-native-network-info@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/react-native-network-info/-/react-native-network-info-5.2.1.tgz#b701f10d4ed1aeadcfe77b197328d1ae846f6d3a"
+  integrity sha512-iam74xXtrSqqZurCl1/bSjZ9jXcsJY84g7brx1/4uVGCY26c6m+4CArHNSHOsz5ATg2NQT+81sjNy0KlCPyK4g==
+
+react-native-public-ip@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-public-ip/-/react-native-public-ip-1.0.2.tgz#3ce67cbfafdd5b8799e5b669e92351db0cc06102"
+  integrity sha512-GElvYvHLo/BCRFlXARBTq9Dwx526d1zxnyqlSfp1RQwA1yAucFbabfm6nAA3c2Nnq2OdfL4dbFGSeArM2Hdr2g==
+
 react-native-reanimated@~3.16.1:
   version "3.16.7"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.16.7.tgz#6c7fa516f62c6743c24d955dada00e3c5323d50d"
@@ -6223,15 +6233,16 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.19:
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.19.tgz#d06ae44b2c2c1be73f4024abee6e98e7e5759110"
-  integrity sha512-b8/UXWtTYJyQ4cR8HSmqa3TxIanaLgYkKJAdaddMostkP45K9WMr1esDcnBCwxdNFwy3m2ky1tZtJpEtQq7hGg==
+react-native-vpage-sdk@^0.0.27:
+  version "0.0.27"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.27.tgz#2944ce2116e9e72387f1c1c748ebd508551379f0"
+  integrity sha512-Lw0/iIgwsMmHJLRJ5WZoJKzBVIEPxYy751xfvl5GNp764Md5bK5Px/2NCERDooS8YyNisEQ6S1iDhfSbuEhSPg==
   dependencies:
     axios "^1.8.4"
     react "^19.0.0"
     react-native "^0.78.1"
     react-native-agora "^4.5.2"
+    react-native-network-info "^5.2.1"
 
 react-native-web@~0.19.13:
   version "0.19.13"
