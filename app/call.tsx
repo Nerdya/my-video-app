@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { createAPIService, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { createAPIService, createVekycEngine, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function CallScreen() {
   const apiService = createAPIService({
     baseURL: "https://vekyc-gateway-server-uat.mobifi.vn",
     headers: {
-      token: "c1c20a5d447dac739e71f1e872dc26bb744e727f143753d9e44ce129ea645019"
+      token: "a77e3d4eb8b1141190827c114cb21dce23331b657da9b85ae32ec7f45cfe92d9"
     }
   });
 
@@ -31,7 +31,7 @@ export default function CallScreen() {
       "You are currently in the call. Are you sure you want to leave?",
       [
         { text: "Cancel", style: "cancel", onPress: () => {} },
-        { text: "Yes, Leave", style: "destructive", onPress: () => router.replace(`/result`) },
+        { text: "Yes, Leave", style: "destructive", onPress: toResult },
       ],
       { cancelable: true }
     );
@@ -55,7 +55,8 @@ export default function CallScreen() {
   const channelName: string = decodeURIComponent(params.channelName as string);
   const localUid: number = Number(decodeURIComponent(params.localUid as string));
 
-  const vekycService = createVekycService(appId);
+  const engine = createVekycEngine();
+  const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
 
@@ -66,7 +67,7 @@ export default function CallScreen() {
         console.error("Invalid response from hook API:", res);
         return;
       }
-      console.log("Hooked successfully:", res?.data);
+      console.log("Hooked successfully:", res);
     } catch (error) {
       console.error("Exception:", error);
     }
@@ -74,29 +75,39 @@ export default function CallScreen() {
 
   useEffect(() => {
     const init = async () => {
-      await vekycService.initialize();
+      console.log("Initializing...");
+      await vekycService.initialize(engine, appId);
     
-      vekycService.registerEventHandler({
+      console.log("engine:", engine);
+      vekycService.registerEventHandler(engine, {
         onJoinChannelSuccess: () => {
-          vekycService.enableVideo();
+          console.log('onJoinChannelSuccess');
+          vekycService.enableVideo(engine);
           setIsJoined(true);
         },
         onUserJoined: (_connection, uid) => {
+          console.log('onUserJoined');
           setRemoteUid(() => uid);
         },
         onUserOffline: (_connection, uid) => {
+          console.log('onUserOffline');
           setRemoteUid((prevUid) => prevUid === uid ? 0 : prevUid);
         }
       });
-    
-      await vekycService.joinChannel(token, channelName, localUid);
+
+      const result = engine.preloadChannel(token, channelName, localUid);
+      console.log("Preload result:", result);
+
+      await vekycService.joinChannel(engine, token, channelName, localUid, {});
+
+      await hook();
     };
     
     init();
-    hook();
 
     return () => {
-      vekycService.cleanup();
+      console.log("Cleaning up...");
+      vekycService.cleanup(engine);
     };
   }, []);
 
@@ -107,7 +118,7 @@ export default function CallScreen() {
         console.error("Invalid response from closeVideo API:", res);
         return;
       }
-      console.log("Closed video successfully:", res?.data);
+      console.log("Closed video successfully:", res);
       leave();
     } catch (error) {
       console.error("Exception:", error);
@@ -116,7 +127,11 @@ export default function CallScreen() {
 
 
   const leave = () => {
-    vekycService.leaveChannel();
+    vekycService.leaveChannel(engine);
+    toResult();
+  }
+
+  const toResult = () => {
     router.replace(`/result`);
   }
 

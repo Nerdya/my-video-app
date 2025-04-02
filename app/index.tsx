@@ -9,20 +9,11 @@ export default function IndexScreen() {
   const apiService = createAPIService({
     baseURL: "https://vekyc-gateway-server-uat.mobifi.vn",
     headers: {
-      token: "c1c20a5d447dac739e71f1e872dc26bb744e727f143753d9e44ce129ea645019"
+      token: "a77e3d4eb8b1141190827c114cb21dce23331b657da9b85ae32ec7f45cfe92d9"
     }
   });
 
-  // const [appointmentId, setAppointmentId] = useState("0b4382f1-5332-493b-9aad-373c348a3152");
-  // const [appId, setAppId] = useState("85aec5b5ad574659957cf8886527e134");
-  // const [token, setToken] = useState("007eJxTYDjreVpYj9+qd1/oifqv9dKa8jJ35x58ZdgSvufM9er7t0MVGCxME1OTTZNME1NMzU3MTC0tTc2T0ywsLMxMjcxTDY1NHmx+nd4QyMiwz72QmZEBAkF8dobk0vy89LxsBgYA6QMh9A==");
-  // const [channelName, setChannelName] = useState("cuongnk");
-  // const [localUid, setLocalUid] = useState("0");
   const [appointmentId, setAppointmentId] = useState("0181e6e7-634e-4050-b295-e093fcb3f170");
-  const [appId, setAppId] = useState("");
-  const [token, setToken] = useState("");
-  const [channelName, setChannelName] = useState("");
-  const [localUid, setLocalUid] = useState("");
 
   const getIPAddress = async () => {
     try {
@@ -54,18 +45,21 @@ export default function IndexScreen() {
         return;
       }
       console.log("Meeting created successfully:", res?.data);
-      setAppId(res?.data?.sessionId);
-      setChannelName(res?.data?.key);
-      setToken(res?.data?.code);
-      setLocalUid(res?.data?.subId);
-      console.log('index', appId);
-      toCall();
+      // const appId = "85aec5b5ad574659957cf8886527e134";
+      // const token = "007eJxTYEi++zCFoe0j7/0JT4/5cKUqdocoqxZk8VyLvXC6quhLTr8Cg4VpYmqyaZJpYoqpuYmZqaWlqXlymoWFhZmpkXmqobFJatLb9IZARgYXk1kMjFAI4rMzJJfm56XnZTMwAACimCAZ";
+      // const channelName = "cuongnk";
+      // const localUid = "0";
+      const appId = res?.data?.sessionId;
+      const token = res?.data?.code;
+      const channelName = res?.data?.key;
+      const localUid = res?.data?.subId;
+      toCall(appointmentId, appId, token, channelName, localUid);
     } catch (error) {
       console.error("Exception:", error);
     }
   }
 
-  const toCall = () => {
+  const toCall = (appointmentId: string, appId: string, token: string, channelName: string, localUid: string) => {
     router.push(`/call?appointmentId=${encodeURIComponent(appointmentId)}&appId=${encodeURIComponent(appId)}&token=${encodeURIComponent(token)}&channelName=${encodeURIComponent(channelName)}&localUid=${encodeURIComponent(localUid)}`);
   };
 
