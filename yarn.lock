@@ -6169,6 +6169,11 @@ react-native-agora@^4.5.2:
     json-bigint "^1.0.0"
     ts-interface-checker "^1.0.2"
 
+react-native-crypto-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-crypto-js/-/react-native-crypto-js-1.0.0.tgz#e677e022e147f41b35614416c92d655f87e2450a"
+  integrity sha512-FNbLuG/HAdapQoybeZSoes1PWdOj0w242gb+e1R0hicf3Gyj/Mf8M9NaED2AnXVOX01b2FXomwUiw1xP1K+8sA==
+
 react-native-gesture-handler@~2.20.2:
   version "2.20.2"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.20.2.tgz#73844c8e9c417459c2f2981bc4d8f66ba8a5ee66"
@@ -6228,15 +6233,16 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.31:
-  version "0.0.31"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.31.tgz#14cba0db00a91331f764070d04b98838305e2ec8"
-  integrity sha512-aDDIkhQuRS+9pynUhoxZf6Hi+p6wXRi33dnCxiGPyJWgJwSSLJ1vOUBInOiDE1AuFRcAjiePrZub0D2GOnBCCw==
+react-native-vpage-sdk@^0.0.35:
+  version "0.0.35"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.35.tgz#535ccb2d4fc1b2cb18719a4eadfa1354cb197b4c"
+  integrity sha512-M7jfgbarHFkYcQGbKjAaxJyOVTZGLniq+/7+guysmH4xvsWHDBOyz4q5B2KXcH3GGBONaYdTmXRYDp+LvizUuQ==
   dependencies:
     axios "^1.8.4"
     react "^19.0.0"
     react-native "^0.78.1"
     react-native-agora "^4.5.2"
+    react-native-crypto-js "^1.0.0"
 
 react-native-web@~0.19.13:
   version "0.19.13"
