@@ -6228,10 +6228,10 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.29:
-  version "0.0.29"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.29.tgz#d81c3b0b6b5178f6be0610ce50670202bcac0986"
-  integrity sha512-jez2dSNlCkarZBnJFDpUDhXD5FGA2/EiuY4q5qbNL0adUEcc3HfMsaBPZuIWYJxwOOD5XtpEerHiB1PYsCwEvw==
+react-native-vpage-sdk@^0.0.31:
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.31.tgz#14cba0db00a91331f764070d04b98838305e2ec8"
+  integrity sha512-aDDIkhQuRS+9pynUhoxZf6Hi+p6wXRi33dnCxiGPyJWgJwSSLJ1vOUBInOiDE1AuFRcAjiePrZub0D2GOnBCCw==
   dependencies:
     axios "^1.8.4"
     react "^19.0.0"

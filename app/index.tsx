@@ -9,7 +9,7 @@ export default function IndexScreen() {
   const apiService = createAPIService({
     baseURL: "https://vekyc-gateway-server-uat.mobifi.vn",
     headers: {
-      token: "a77e3d4eb8b1141190827c114cb21dce23331b657da9b85ae32ec7f45cfe92d9"
+      token: "53dc9185915ca0b48880d4f9b5cb6a1d88c320248ff20c8f339bb545e260c06a"
     }
   });
 
@@ -30,7 +30,7 @@ export default function IndexScreen() {
         console.error("Invalid response from getConfigInfo API:", res);
         return;
       }
-      console.log("Meeting created successfully:", res?.data);
+      console.log("Config info fetched:", res?.data);
     } catch (error) {
       console.error("Exception:", error);
     }
@@ -46,10 +46,10 @@ export default function IndexScreen() {
       }
       console.log("Meeting created successfully:", res?.data);
       // const appId = "85aec5b5ad574659957cf8886527e134";
-      // const token = "007eJxTYEi++zCFoe0j7/0JT4/5cKUqdocoqxZk8VyLvXC6quhLTr8Cg4VpYmqyaZJpYoqpuYmZqaWlqXlymoWFhZmpkXmqobFJatLb9IZARgYXk1kMjFAI4rMzJJfm56XnZTMwAACimCAZ";
+      // const token = "007eJxTYNC9u7onNfTyxlO6kloTlXhqXiwSffT087cz9j5bF8wJSHmowGBhmpiabJpkmphiam5iZmppaWqenGZhYWFmamSeamhs8k/kbXpDICND4I1jjIwMEAjiszMkl+bnpedlMzAAAC+VIq0=";
       // const channelName = "cuongnk";
       // const localUid = "0";
-      const appId = res?.data?.sessionId;
+      const appId = "b2d320ca642f48958f2b5e5cd1b1c547";
       const token = res?.data?.code;
       const channelName = res?.data?.key;
       const localUid = res?.data?.subId;
@@ -60,6 +60,12 @@ export default function IndexScreen() {
   }
 
   const toCall = (appointmentId: string, appId: string, token: string, channelName: string, localUid: string) => {
+    console.log("Navigating to CallScreen with the following parameters:");
+    console.log("appointmentId:", appointmentId);
+    console.log("appId:", appId);
+    console.log("token:", token);
+    console.log("channelName:", channelName);
+    console.log("localUid:", localUid);
     router.push(`/call?appointmentId=${encodeURIComponent(appointmentId)}&appId=${encodeURIComponent(appId)}&token=${encodeURIComponent(token)}&channelName=${encodeURIComponent(channelName)}&localUid=${encodeURIComponent(localUid)}`);
   };
 

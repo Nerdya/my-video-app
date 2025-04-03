@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { createAPIService, createVekycEngine, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { AreaCode, ChannelProfileType, ThreadPriorityType } from "react-native-agora";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function CallScreen() {
   const apiService = createAPIService({
     baseURL: "https://vekyc-gateway-server-uat.mobifi.vn",
     headers: {
-      token: "a77e3d4eb8b1141190827c114cb21dce23331b657da9b85ae32ec7f45cfe92d9"
+      token: "53dc9185915ca0b48880d4f9b5cb6a1d88c320248ff20c8f339bb545e260c06a"
     }
   });
 
@@ -49,11 +50,11 @@ export default function CallScreen() {
     }
   }, [segments]);
 
-  const appointmentId: string = decodeURIComponent(params.appointmentId as string);
-  const appId: string = decodeURIComponent(params.appId as string);
-  const token: string = decodeURIComponent(params.token as string);
-  const channelName: string = decodeURIComponent(params.channelName as string);
-  const localUid: number = Number(decodeURIComponent(params.localUid as string));
+  const appointmentId = decodeURIComponent(params.appointmentId as string);
+  const appId = decodeURIComponent(params.appId as string);
+  const channelName = decodeURIComponent(params.channelName as string);
+  const token = decodeURIComponent(params.token as string);
+  const localUid = Number(decodeURIComponent(params.localUid as string));
 
   const engine = createVekycEngine();
   const vekycService = createVekycService();
@@ -73,36 +74,37 @@ export default function CallScreen() {
     }
   }
 
+  const init = async () => {
+    console.log("Initializing...");
+    console.log("engine:", engine);
+    console.log("appId:", appId);
+
+    const initializeResult = await vekycService.initialize(engine, { appId });
+    console.log("Initialize result:", initializeResult);
+  
+    await vekycService.registerEventHandler(engine, {
+      onJoinChannelSuccess: () => {
+        console.log('onJoinChannelSuccess');
+        vekycService.enableVideo(engine);
+        setIsJoined(true);
+      },
+      onUserJoined: (_connection, uid) => {
+        console.log('onUserJoined', uid);
+        setRemoteUid(() => uid);
+      },
+      onUserOffline: (_connection, uid) => {
+        console.log('onUserOffline', uid);
+        setRemoteUid((prevUid) => prevUid === uid ? 0 : prevUid);
+      }
+    });
+
+    const joinResult = await vekycService.joinChannel(engine, token, channelName, localUid, {});
+    console.log("Join result:", joinResult);
+
+    hook();
+  };
+
   useEffect(() => {
-    const init = async () => {
-      console.log("Initializing...");
-      await vekycService.initialize(engine, appId);
-    
-      console.log("engine:", engine);
-      vekycService.registerEventHandler(engine, {
-        onJoinChannelSuccess: () => {
-          console.log('onJoinChannelSuccess');
-          vekycService.enableVideo(engine);
-          setIsJoined(true);
-        },
-        onUserJoined: (_connection, uid) => {
-          console.log('onUserJoined');
-          setRemoteUid(() => uid);
-        },
-        onUserOffline: (_connection, uid) => {
-          console.log('onUserOffline');
-          setRemoteUid((prevUid) => prevUid === uid ? 0 : prevUid);
-        }
-      });
-
-      const result = engine.preloadChannel(token, channelName, localUid);
-      console.log("Preload result:", result);
-
-      await vekycService.joinChannel(engine, token, channelName, localUid, {});
-
-      await hook();
-    };
-    
     init();
 
     return () => {
@@ -124,7 +126,6 @@ export default function CallScreen() {
       console.error("Exception:", error);
     }
   }
-
 
   const leave = () => {
     vekycService.leaveChannel(engine);
