@@ -58,6 +58,9 @@ export default function CallScreen() {
     },
   });
 
+  const [isHooking, setIsHooking] = useState(false);
+  const [isClosingVideo, setIsClosingVideo] = useState(false);
+
   const engine = createVekycEngine();
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
@@ -103,6 +106,10 @@ export default function CallScreen() {
   }, []);
 
   const hook = async () => {
+    if (isHooking) {
+      return;
+    }
+    setIsHooking(true);
     try {
       if (!apiService) {
         console.error("API service is not available for hook");
@@ -117,10 +124,16 @@ export default function CallScreen() {
       console.log("Hooked successfully:", res);
     } catch (error) {
       console.error("Exception during hook:", error);
+    } finally {
+      setIsHooking(false);
     }
   }
 
   const closeVideo = async () => {
+    if (isClosingVideo) {
+      return;
+    }
+    setIsClosingVideo(true);
     try {
       const res = await apiService.closeVideo(channelName);
       if (!res?.status) {
@@ -128,23 +141,21 @@ export default function CallScreen() {
         return;
       }
       console.log("Closed video successfully:", res);
-      leave();
     } catch (error) {
       console.error("Error closing video:", error);
+    } finally {
+      setIsClosingVideo(false);
+      leave();
     }
   }
 
   const leave = () => {
-    try {
-      vekycService.leaveChannel(engine);
-    } catch (error) {
-      console.error("Error leaving:", error);
-    }
+    vekycService.leaveChannel(engine);
     toResult();
   }
 
   const toResult = () => {
-    router.replace(`/result`);
+    router.replace("/result");
   }
 
   return (
@@ -152,10 +163,10 @@ export default function CallScreen() {
       <Text style={styles.head}>Video Call Screen</Text>
       <View style={styles.btnContainer}>
         <Text onPress={hook} style={styles.button}>
-          Connect to Agent
+          {isHooking ? "Connecting to Agent..." : "Connect to Agent"}
         </Text>
         <Text onPress={closeVideo} style={styles.button}>
-          End Call
+          {isClosingVideo ? "Ending Call..." : "End Call"}
         </Text>
       </View>
       <ScrollView

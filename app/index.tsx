@@ -15,6 +15,8 @@ export default function IndexScreen() {
   const [appointmentId, setAppointmentId] = useState("");
   const [apiToken, setApiToken] = useState("");
 
+  const [isCreatingMeeting, setIsCreatingMeeting] = useState(false);
+
   useEffect(() => {
     setApiService(null);
   }, []);
@@ -64,6 +66,10 @@ export default function IndexScreen() {
   };
 
   const createMeeting = async () => {
+    if (isCreatingMeeting) {
+      return;
+    }
+    setIsCreatingMeeting(true);
     try {
       const customerIp = await getIPAddress() || "";
       const res = await apiService.createMeeting(appointmentId, customerIp);
@@ -83,6 +89,8 @@ export default function IndexScreen() {
       toCall(appointmentId, apiToken, appId, token, channelName, localUid);
     } catch (error) {
       console.error("Exception:", error);
+    } finally {
+      setIsCreatingMeeting(false);
     }
   }
 
@@ -144,9 +152,9 @@ export default function IndexScreen() {
       /> */}
 
       <Button
-        title="Create Meeting"
+        title={isCreatingMeeting ? "Creating Meeting..." : "Create Meeting"}
         onPress={createMeeting}
-        disabled={!apiService}
+        disabled={!apiService || isCreatingMeeting}
       />
     </View>
   );
