@@ -11,7 +11,11 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "eas-android": "eas build --profile development --platform android",
-    "build-android": "cd android && ./gradlew assembleRelease"
+    "eas-ios": "eas build --profile development --platform ios",
+    "eas-submit-android": "eas submit --platform android --latest",
+    "eas-submit-ios": "eas submit --platform ios --latest",
+    "build-android": "cd android && ./gradlew assembleRelease",
+    "build-ios": "cd ios && xcodebuild -scheme MyApp -configuration Release -archivePath build/MyApp.xcarchive archive && xcodebuild -exportArchive -archivePath build/MyApp.xcarchive -exportPath build/MyApp.ipa -exportOptionsPlist exportOptions.plist"
   },
   "jest": {
     "preset": "jest-expo"
@@ -22,6 +26,7 @@
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "agora-react-native-rtm": "^1.5.1",
+    "eas-cli": "^16.2.1",
     "expo": "~52.0.40",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.8",
@@ -44,7 +49,7 @@
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
-    "react-native-vpage-sdk": "^0.0.35",
+    "react-native-vpage-sdk": "^0.0.36",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5"
   },

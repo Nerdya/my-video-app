@@ -10,7 +10,7 @@ export default function IndexScreen() {
   const cryptoService = createCryptoService();
 
   const [apiService, setApiService] = useState<any>();
-  const [ws6Url, setWs6Url] = useState("https://vekyc-vpage-tpc-ui-uat.mobifi.vn//partner-redirect-dynamic?appointment_id=34d689ed-c5c7-44db-b616-111fcdb20d25&token_encrypt=7DBH0kM0drkeGKoMFACv3ZZSHobKYhgVR5mr9V0jXzx83YDA%2BcasI8hucngnb76SaugMDj1ouEFv2PfXCrZRBfI8xfy63GNiMqXwBXfIzg7%2BRiFR%2FHxZKWY2GVMxvcyeRONp9n4EY3aVTYc0XobqjA%3D%3D");
+  const [ws6Url, setWs6Url] = useState("");
   const [config, setConfig] = useState<EnvConfig>();
   const [appointmentId, setAppointmentId] = useState("");
   const [apiToken, setApiToken] = useState("");

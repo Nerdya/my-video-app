@@ -61,24 +61,23 @@ export default function CallScreen() {
   const [isHooking, setIsHooking] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
 
-  const engine = createVekycEngine();
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
 
   const join = async () => {
-    vekycService.getPermissions();
+    await vekycService.getPermissions();
 
-    const initializeResult = await vekycService.initialize(engine, appId);
+    const initializeResult = await vekycService.initialize(appId);
     console.log("initializeResult:", initializeResult);
 
     // Register event handlers
-    await vekycService.registerEventHandler(engine, {
+    await vekycService.registerEventHandler({
       onJoinChannelSuccess: () => {
         console.log("onJoinChannelSuccess");
-        const enableVideoResult = vekycService.enableVideo(engine);
+        const enableVideoResult = vekycService.enableVideo();
         console.log("enableVideoResult:", enableVideoResult);
-        const startPreviewResult = vekycService.startPreview(engine);
+        const startPreviewResult = vekycService.startPreview();
         console.log("startPreviewResult:", startPreviewResult);
         setIsJoined(true);
       },
@@ -92,16 +91,17 @@ export default function CallScreen() {
       },
     });
 
-    const joinResult = await vekycService.joinChannel(engine, token, channelName, localUid, {});
+    const joinResult = await vekycService.joinChannel(token, channelName, localUid, {});
     console.log("joinResult:", joinResult);
   };
 
   useEffect(() => {
+    console.log("Initializing...");
     join();
 
     return () => {
       console.log("Cleaning up...");
-      vekycService.cleanup(engine);
+      vekycService.cleanup();
     };
   }, []);
 
@@ -150,7 +150,7 @@ export default function CallScreen() {
   }
 
   const leave = () => {
-    vekycService.leaveChannel(engine);
+    vekycService.leaveChannel();
     toResult();
   }
 
