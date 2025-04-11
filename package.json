@@ -15,7 +15,7 @@
     "eas-submit-android": "eas submit --platform android --latest",
     "eas-submit-ios": "eas submit --platform ios --latest",
     "build-android": "cd android && ./gradlew assembleRelease",
-    "build-ios": "cd ios && xcodebuild -scheme MyApp -configuration Release -archivePath build/MyApp.xcarchive archive && xcodebuild -exportArchive -archivePath build/MyApp.xcarchive -exportPath build/MyApp.ipa -exportOptionsPlist exportOptions.plist"
+    "build-ios": "cd ios && xcodebuild -scheme VpageApp -configuration Release -archivePath build/VpageApp.xcarchive archive && xcodebuild -exportArchive -archivePath build/VpageApp.xcarchive -exportPath build/VpageApp.ipa -exportOptionsPlist exportOptions.plist"
   },
   "jest": {
     "preset": "jest-expo"
@@ -35,6 +35,7 @@
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-linking": "~7.0.5",
+    "expo-modules-autolinking": "^2.0.8",
     "expo-router": "~4.0.19",
     "expo-splash-screen": "~0.29.22",
     "expo-status-bar": "~2.0.1",
@@ -61,6 +62,7 @@
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
     "@types/sockjs-client": "^1.5.4",
+    "expo-module-scripts": "^4.0.5",
     "jest": "^29.2.1",
     "jest-expo": "~52.0.6",
     "react-test-renderer": "18.3.1",
