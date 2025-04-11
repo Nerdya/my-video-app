@@ -10,8 +10,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { createAPIService, createVekycEngine, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { createAPIService, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { vkycTpcConfig } from "@/helpers/config";
+import { createSocketService } from "@/helpers/socketService";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -57,15 +58,29 @@ export default function CallScreen() {
       token: apiToken,
     },
   });
-
   const [isHooking, setIsHooking] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
+
+  const socketService = createSocketService();
+  const connectSocket = async () => {
+    socketService.initialize(vkycTpcConfig.socketBaseUrl);
+  };
+
+  useEffect(() => {
+    console.log("Initializing socket connection...");
+    connectSocket();
+
+    return () => {
+      console.log("Cleaning up socket connection...");
+      socketService.disconnect();
+    }
+  }, []);
 
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
 
-  const join = async () => {
+  const joinCall = async () => {
     await vekycService.getPermissions();
 
     const initializeResult = await vekycService.initialize(appId);
@@ -96,11 +111,11 @@ export default function CallScreen() {
   };
 
   useEffect(() => {
-    console.log("Initializing...");
-    join();
+    console.log("Initializing call...");
+    joinCall();
 
     return () => {
-      console.log("Cleaning up...");
+      console.log("Cleaning up call...");
       vekycService.cleanup();
     };
   }, []);
@@ -145,11 +160,11 @@ export default function CallScreen() {
       console.error("Error closing video:", error);
     } finally {
       setIsClosingVideo(false);
-      leave();
+      leaveCall();
     }
   }
 
-  const leave = () => {
+  const leaveCall = () => {
     vekycService.leaveChannel();
     toResult();
   }

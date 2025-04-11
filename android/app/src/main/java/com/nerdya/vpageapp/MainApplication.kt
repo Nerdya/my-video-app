@@ -1,4 +1,4 @@
-package com.nerdya.myvideoapp
+package com.nerdya.vpageapp
 
 import android.app.Application
 import android.content.res.Configuration

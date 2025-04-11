@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "myvideoapp.app"
-               BlueprintName = "myvideoapp"
-               ReferencedContainer = "container:myvideoapp.xcodeproj">
+               BuildableName = "vpageapp.app"
+               BlueprintName = "vpageapp"
+               ReferencedContainer = "container:vpageapp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "myvideoappTests.xctest"
-               BlueprintName = "myvideoappTests"
-               ReferencedContainer = "container:myvideoapp.xcodeproj">
+               BuildableName = "vpageappTests.xctest"
+               BlueprintName = "vpageappTests"
+               ReferencedContainer = "container:vpageapp.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "myvideoapp.app"
-            BlueprintName = "myvideoapp"
-            ReferencedContainer = "container:myvideoapp.xcodeproj">
+            BuildableName = "vpageapp.app"
+            BlueprintName = "vpageapp"
+            ReferencedContainer = "container:vpageapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "myvideoapp.app"
-            BlueprintName = "myvideoapp"
-            ReferencedContainer = "container:myvideoapp.xcodeproj">
+            BuildableName = "vpageapp.app"
+            BlueprintName = "vpageapp"
+            ReferencedContainer = "container:vpageapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

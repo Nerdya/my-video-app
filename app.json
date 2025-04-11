@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-video-app",
-    "slug": "my-video-app",
+    "name": "vpage-app",
+    "slug": "vpage-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,14 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nerdya.myvideoapp"
+      "bundleIdentifier": "com.nerdya.vpageapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.nerdya.myvideoapp"
+      "package": "com.nerdya.vpageapp"
     },
     "web": {
       "bundler": "metro",

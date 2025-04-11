@@ -1,4 +1,4 @@
-package com.nerdya.myvideoapp
+package com.nerdya.vpageapp
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
