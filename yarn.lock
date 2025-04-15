@@ -8704,16 +8704,18 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.36:
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.36.tgz#fbbf1172eff177afed0613d5af51bfc50495cb73"
-  integrity sha512-tOJz8iM68EktfzyK5/xVkwOlu3kEjHm1rS6u3VfwQJMcrx4uiUq2oQKLiJUn1cFfat2bNOFtFskJaEoHKCwJAQ==
+react-native-vpage-sdk@^0.0.38:
+  version "0.0.38"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.38.tgz#d373c095babc5a9c4e7187fc27abb5b81fc2f889"
+  integrity sha512-BmrDVqPyU/579OzfFBXfewwgrlOxmHqlJxKJ8dIQUP4mNJBE45lIn3xYuWbHHBWTi5QDcVglVKu41AS1pMNWQw==
   dependencies:
+    "@stomp/stompjs" "^7.1.1"
     axios "^1.8.4"
     react "^19.0.0"
     react-native "^0.78.1"
     react-native-agora "^4.5.2"
     react-native-crypto-js "^1.0.0"
+    sockjs-client "^1.6.1"
 
 react-native-web@~0.19.13:
   version "0.19.13"

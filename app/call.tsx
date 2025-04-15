@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useRouter, useSegments, useLocalSearchParams } from "expo-router";
 import {
@@ -10,9 +9,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { createAPIService, createVekycService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { vkycTpcConfig } from "@/helpers/config";
-import { createSocketService } from "@/helpers/socketService";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -62,19 +60,66 @@ export default function CallScreen() {
   const [isClosingVideo, setIsClosingVideo] = useState(false);
 
   const socketService = createSocketService();
+  const [socketServiceInstance, setSocketServiceInstance] = useState(socketService);
+
   const connectSocket = async () => {
-    socketService.initialize(vkycTpcConfig.socketBaseUrl);
+    socketService.initialize(
+      vkycTpcConfig.socketBaseUrl,
+      channelName,
+      apiToken,
+      (message) => {
+        console.log(`[${new Date()}]`, message);
+      }
+    );
+
+    socketService.registerEventHandler({
+      // onUnhandledMessage: (message) => {
+      //   console.error('Unhandled message:', message);
+      // },
+      // onUnhandledReceipt: (frame) => {
+      //   console.error('Unhandled receipt:', frame);
+      // },
+      // onUnhandledFrame: (frame) => {
+      //   console.error('Unhandled frame:', frame);
+      // },
+      // beforeConnect: async (client) => {
+      //   console.log('Before connect:', client);
+      // },
+      onConnect: (frame) => {
+        console.log("STOMP connected:", frame);
+        socketService.subscribeSessionNotifyTopic((message) => {
+          console.log("Session notify:", message);
+        });
+        socketService.subscribeSocketNotifyTopic((message) => {
+          console.log("Socket notify:", message);
+        });
+        socketService.subscribeSocketHealthTopic((message) => {
+          console.log("Session notify:", message);
+        });
+        socketService.subscribeAppLiveTopic((message) => {
+          console.log("App live:", message);
+        });
+      },
+      onDisconnect: (frame) => {
+        console.log('STOMP disconnected:', frame);
+      },
+      // onStompError: (frame) => {
+      //   console.error('STOMP error:', frame);
+      // },
+      // onWebSocketClose: (event) => {
+      //   console.error('WebSocket closed:', event);
+      // },
+      // onWebSocketError: (event) => {
+      //   console.error('WebSocket error:', event);
+      // },
+      // onChangeState: (state) => {
+      //   console.log('State changed:', state);
+      // }
+    });
+
+    socketService.connect();
+    setSocketServiceInstance(socketService);
   };
-
-  useEffect(() => {
-    console.log("Initializing socket connection...");
-    connectSocket();
-
-    return () => {
-      console.log("Cleaning up socket connection...");
-      socketService.disconnect();
-    }
-  }, []);
 
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
@@ -83,17 +128,14 @@ export default function CallScreen() {
   const joinCall = async () => {
     await vekycService.getPermissions();
 
-    const initializeResult = await vekycService.initialize(appId);
-    console.log("initializeResult:", initializeResult);
+    await vekycService.initialize(appId);
 
     // Register event handlers
     await vekycService.registerEventHandler({
       onJoinChannelSuccess: () => {
         console.log("onJoinChannelSuccess");
-        const enableVideoResult = vekycService.enableVideo();
-        console.log("enableVideoResult:", enableVideoResult);
-        const startPreviewResult = vekycService.startPreview();
-        console.log("startPreviewResult:", startPreviewResult);
+        vekycService.enableVideo();
+        vekycService.startPreview();
         setIsJoined(true);
       },
       onUserJoined: (_connection, uid) => {
@@ -106,17 +148,22 @@ export default function CallScreen() {
       },
     });
 
-    const joinResult = await vekycService.joinChannel(token, channelName, localUid, {});
-    console.log("joinResult:", joinResult);
+    await vekycService.joinChannel(token, channelName, localUid, {});
   };
 
   useEffect(() => {
+    console.log("Initializing socket connection...");
+    connectSocket();
+
     console.log("Initializing call...");
     joinCall();
 
     return () => {
       console.log("Cleaning up call...");
       vekycService.cleanup();
+      
+      console.log("Cleaning up socket connection...");
+      socketService.cleanup();
     };
   }, []);
 
@@ -137,6 +184,7 @@ export default function CallScreen() {
         return;
       }
       console.log("Hooked successfully:", res);
+      socketService.startHealthCheck(socketServiceInstance);
     } catch (error) {
       console.error("Exception during hook:", error);
     } finally {

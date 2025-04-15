@@ -95,13 +95,6 @@ export default function IndexScreen() {
   }
 
   const toCall = (appointmentId: string, apiToken: string, appId: string, token: string, channelName: string, localUid: string) => {
-    console.log("Navigating to CallScreen with the following parameters:");
-    console.log("appointmentId:", appointmentId);
-    console.log("apiToken:", apiToken);
-    console.log("appId:", appId);
-    console.log("token:", token);
-    console.log("channelName:", channelName);
-    console.log("localUid:", localUid);
     router.push({
       pathname: "/call",
       params: {
