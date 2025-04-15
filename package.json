@@ -27,7 +27,7 @@
     "@react-navigation/native": "^7.0.14",
     "@stomp/stompjs": "^7.1.1",
     "agora-react-native-rtm": "^1.5.1",
-    "eas-cli": "^16.2.1",
+    "eas-cli": "^16.3.1",
     "expo": "~52.0.40",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.8",
