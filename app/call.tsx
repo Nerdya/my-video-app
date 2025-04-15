@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from 'react-native';
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { vkycTpcConfig } from "@/helpers/config";
@@ -218,8 +219,12 @@ export default function CallScreen() {
   }
 
   const toResult = () => {
-    router.replace("/result");
-  }
+    if (Platform.OS === "android") {
+      router.replace("/result");
+    } else if (Platform.OS === "ios") {
+      router.push("/result");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.main}>
