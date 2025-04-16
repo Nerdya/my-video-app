@@ -11,3 +11,9 @@ export const vkycTpcConfig = {
   socketHealthCheck: 3000,
   appId: "b2d320ca642f48958f2b5e5cd1b1c547",
 };
+
+export enum MessageCode {
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR',
+  FORCE_LEAVE = 'FORCE_LEAVE',
+};

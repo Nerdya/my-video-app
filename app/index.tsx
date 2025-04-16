@@ -9,6 +9,8 @@ export default function IndexScreen() {
   const router = useRouter();
   const cryptoService = createCryptoService();
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [apiService, setApiService] = useState<any>();
   const [ws6Url, setWs6Url] = useState("");
   const [config, setConfig] = useState<EnvConfig>();
@@ -70,29 +72,26 @@ export default function IndexScreen() {
       return;
     }
     setIsCreatingMeeting(true);
+    setErrorMessage(``);
     try {
       const customerIp = await getIPAddress() || "";
       const res = await apiService.createMeeting(appointmentId, customerIp);
       if (!res?.status || !res?.data?.sessionId || !res?.data?.key || !res?.data?.code || !res?.data?.subId) {
-        console.error("Invalid response from createMeeting API:", res);
+        setErrorMessage(`Invalid response from createMeeting API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Meeting created successfully:", res?.data);
-      // const appId = "85aec5b5ad574659957cf8886527e134";
-      // const token = "007eJxTYNC9u7onNfTyxlO6kloTlXhqXiwSffT087cz9j5bF8wJSHmowGBhmpiabJpkmphiam5iZmppaWqenGZhYWFmamSeamhs8k/kbXpDICND4I1jjIwMEAjiszMkl+bnpedlMzAAAC+VIq0=";
-      // const channelName = "cuongnk";
-      // const localUid = "0";
       const appId = config?.appId || "";
       const token = res?.data?.code;
       const channelName = res?.data?.key;
       const localUid = res?.data?.subId;
       toCall(appointmentId, apiToken, appId, token, channelName, localUid);
     } catch (error) {
-      console.error("Exception:", error);
+      setErrorMessage(`Exception: ${error}`);
     } finally {
       setIsCreatingMeeting(false);
     }
-  }
+  };
 
   const toCall = (appointmentId: string, apiToken: string, appId: string, token: string, channelName: string, localUid: string) => {
     router.push({
@@ -113,11 +112,8 @@ export default function IndexScreen() {
       <Text style={{ marginBottom: 20, fontSize: 16 }}>
         This is a demo app showcasing the integration of the `react-native-vpage-sdk` package for video calling functionality, using WS6.
       </Text>
-      <Text style={{ marginBottom: 20, fontSize: 16 }}>
-        Input WS6 URL to create a meeting.
-      </Text>
       <Text style={{ marginBottom: 10, fontSize: 16 }}>
-        WS6 URL:
+        Input WS6 URL to create a meeting.
       </Text>
       <TextInput
         value={ws6Url}
@@ -138,17 +134,16 @@ export default function IndexScreen() {
         Init API service before creating a meeting.
       </Text>
 
-      {/* <Button
-        title="Get Config Info"
-        onPress={getConfigInfo}
-        disabled={!apiService}
-      /> */}
-
       <Button
         title={isCreatingMeeting ? "Creating Meeting..." : "Create Meeting"}
         onPress={createMeeting}
         disabled={!apiService || isCreatingMeeting}
       />
+
+      {/* Display error message */}
+      {errorMessage ? (
+        <Text style={{ color: "red", marginTop: 10 }}>{errorMessage}</Text>
+      ) : null}
     </View>
   );
 }

@@ -8,15 +8,16 @@ import {
   StyleSheet,
   Text,
   View,
-  Platform,
 } from 'react-native';
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
-import { vkycTpcConfig } from "@/helpers/config";
+import { MessageCode, vkycTpcConfig } from "@/helpers/config";
 
 export default function CallScreen() {
   const router = useRouter();
   const segments = useSegments();
   const params = useLocalSearchParams();
+
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleBackNavigation = () => {
     if (segments[0] !== "call") return false; // Prevent back handling if not on CallScreen
@@ -26,7 +27,7 @@ export default function CallScreen() {
       "You are currently in the call. Are you sure you want to leave?",
       [
         { text: "Cancel", style: "cancel", onPress: () => {} },
-        { text: "Yes, Leave", style: "destructive", onPress: toResult },
+        { text: "Yes, Leave", style: "destructive", onPress: () => toResult(MessageCode.FORCE_LEAVE) },
       ],
       { cancelable: true }
     );
@@ -75,30 +76,30 @@ export default function CallScreen() {
 
     socketService.registerEventHandler({
       onUnhandledMessage: (message) => {
-        console.error('Unhandled message:', message);
+        console.warn('Unhandled message:', message);
       },
       onUnhandledReceipt: (frame) => {
-        console.error('Unhandled receipt:', frame);
+        console.warn('Unhandled receipt:', frame);
       },
       onUnhandledFrame: (frame) => {
-        console.error('Unhandled frame:', frame);
+        console.warn('Unhandled frame:', frame);
       },
       beforeConnect: async (client) => {
-        console.info('Before connect:', client);
+        console.log('Before connect:', client);
       },
       onConnect: (frame) => {
         console.info("STOMP connected:", frame);
         socketService.subscribeSessionNotifyTopic((message) => {
-          console.info("Session notify:", message.body);
+          console.log("Session notify:", message.body);
         });
         socketService.subscribeSocketNotifyTopic((message) => {
-          console.info("Socket notify:", message.body);
+          console.log("Socket notify:", message.body);
         });
         socketService.subscribeSocketHealthTopic((message) => {
-          console.info("Socket health:", message.body);
+          console.log("Socket health:", message.body);
         });
         socketService.subscribeAppLiveTopic((message) => {
-          console.info("App live:", message.body);
+          console.log("App live:", message.body);
         });
       },
       onDisconnect: (frame) => {
@@ -175,19 +176,19 @@ export default function CallScreen() {
     setIsHooking(true);
     try {
       if (!apiService) {
-        console.error("API service is not available for hook");
+        setErrorMessage(`API service is not available for hook`);
         return;
       }
   
       const res = await apiService.hook(appId, channelName);
       if (!res?.status) {
-        console.error("Invalid response from hook API:", res);
+        setErrorMessage(`Invalid response from hook API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Hooked successfully:", res);
       socketService.startHealthCheck(socketServiceInstance);
     } catch (error) {
-      console.error("Exception during hook:", error);
+      setErrorMessage(`Exception: ${error}`);
     } finally {
       setIsHooking(false);
     }
@@ -202,20 +203,23 @@ export default function CallScreen() {
     try {
       const res = await apiService.closeVideo(channelName);
       if (!res?.status) {
-        console.error("Invalid response from closeVideo API:", res);
+        setErrorMessage(`Invalid response from closeVideo API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Closed video successfully:", res);
     } catch (error) {
-      console.error("Error closing video:", error);
+      setErrorMessage(`Exception: ${error}`);
     } finally {
       setIsClosingVideo(false);
-      toResult();
+      toResult(MessageCode.SUCCESS);
     }
   }
 
-  const toResult = () => {
-    router.replace("/result");
+  const toResult = (code: MessageCode) => {
+    router.replace({
+      pathname: "/result",
+      params: { code: encodeURIComponent(code) },
+    });
   };
 
   return (
@@ -259,6 +263,11 @@ export default function CallScreen() {
             ) : (
               <Text>Waiting for remote user to join</Text>
             )}
+
+            {/* Display error message */}
+            {errorMessage ? (
+              <Text style={styles.errorMessage}>{errorMessage}</Text>
+            ) : null}
           </React.Fragment>
         )}
       </ScrollView>
@@ -281,4 +290,9 @@ const styles = StyleSheet.create({
   videoView: { width: '90%', height: 200 },
   btnContainer: { flexDirection: 'row', justifyContent: 'center' },
   head: { fontSize: 20 },
+  errorMessage: {
+    color: "red",
+    marginTop: 10,
+    textAlign: "center",
+  },
 });
