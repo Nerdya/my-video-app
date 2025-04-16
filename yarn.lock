@@ -8704,10 +8704,10 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.38:
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.38.tgz#d373c095babc5a9c4e7187fc27abb5b81fc2f889"
-  integrity sha512-BmrDVqPyU/579OzfFBXfewwgrlOxmHqlJxKJ8dIQUP4mNJBE45lIn3xYuWbHHBWTi5QDcVglVKu41AS1pMNWQw==
+react-native-vpage-sdk@^0.0.40:
+  version "0.0.40"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.40.tgz#45b507284b67f6c3cf6fd8387edf228529a50998"
+  integrity sha512-jTMaFb2YofoOhAEPpkkkA7Zm46bsI1qyXdyH5n1lyaWEcIx5fwpBHYl1TLi90g8nFBHu/JrNSbn0+aQ7QygDEQ==
   dependencies:
     "@stomp/stompjs" "^7.1.1"
     axios "^1.8.4"

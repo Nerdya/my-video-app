@@ -74,45 +74,45 @@ export default function CallScreen() {
     );
 
     socketService.registerEventHandler({
-      // onUnhandledMessage: (message) => {
-      //   console.error('Unhandled message:', message);
-      // },
-      // onUnhandledReceipt: (frame) => {
-      //   console.error('Unhandled receipt:', frame);
-      // },
-      // onUnhandledFrame: (frame) => {
-      //   console.error('Unhandled frame:', frame);
-      // },
-      // beforeConnect: async (client) => {
-      //   console.log('Before connect:', client);
-      // },
+      onUnhandledMessage: (message) => {
+        console.error('Unhandled message:', message);
+      },
+      onUnhandledReceipt: (frame) => {
+        console.error('Unhandled receipt:', frame);
+      },
+      onUnhandledFrame: (frame) => {
+        console.error('Unhandled frame:', frame);
+      },
+      beforeConnect: async (client) => {
+        console.info('Before connect:', client);
+      },
       onConnect: (frame) => {
-        console.log("STOMP connected:", frame);
+        console.info("STOMP connected:", frame);
         socketService.subscribeSessionNotifyTopic((message) => {
-          console.log("Session notify:", message);
+          console.info("Session notify:", message.body);
         });
         socketService.subscribeSocketNotifyTopic((message) => {
-          console.log("Socket notify:", message);
+          console.info("Socket notify:", message.body);
         });
         socketService.subscribeSocketHealthTopic((message) => {
-          console.log("Session notify:", message);
+          console.info("Socket health:", message.body);
         });
         socketService.subscribeAppLiveTopic((message) => {
-          console.log("App live:", message);
+          console.info("App live:", message.body);
         });
       },
       onDisconnect: (frame) => {
-        console.log('STOMP disconnected:', frame);
+        console.warn('STOMP disconnected:', frame);
       },
-      // onStompError: (frame) => {
-      //   console.error('STOMP error:', frame);
-      // },
-      // onWebSocketClose: (event) => {
-      //   console.error('WebSocket closed:', event);
-      // },
-      // onWebSocketError: (event) => {
-      //   console.error('WebSocket error:', event);
-      // },
+      onStompError: (frame) => {
+        console.error('STOMP error:', frame);
+      },
+      onWebSocketClose: (event) => {
+        console.warn('WebSocket closed:', event);
+      },
+      onWebSocketError: (event) => {
+        console.error('WebSocket error:', event);
+      },
       // onChangeState: (state) => {
       //   console.log('State changed:', state);
       // }
@@ -194,6 +194,7 @@ export default function CallScreen() {
   }
 
   const closeVideo = async () => {
+    console.log("Leaving call...");
     if (isClosingVideo) {
       return;
     }
@@ -209,13 +210,8 @@ export default function CallScreen() {
       console.error("Error closing video:", error);
     } finally {
       setIsClosingVideo(false);
-      leaveCall();
+      toResult();
     }
-  }
-
-  const leaveCall = () => {
-    vekycService.leaveChannel();
-    toResult();
   }
 
   const toResult = () => {
