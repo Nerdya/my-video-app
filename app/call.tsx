@@ -66,7 +66,7 @@ export default function CallScreen() {
   const connectSocket = async () => {
     socketService.initialize(
       vkycTpcConfig.socketBaseUrl,
-      channelName,
+      appId,
       apiToken,
       (message) => {
         console.log(`[${new Date()}]`, message);
