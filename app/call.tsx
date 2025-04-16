@@ -215,11 +215,7 @@ export default function CallScreen() {
   }
 
   const toResult = () => {
-    if (Platform.OS === "android") {
-      router.replace("/result");
-    } else if (Platform.OS === "ios") {
-      router.push("/result");
-    }
+    router.replace("/result");
   };
 
   return (

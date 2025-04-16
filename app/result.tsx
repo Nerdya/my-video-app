@@ -5,11 +5,7 @@ export default function ResultScreen() {
   const router = useRouter();
 
   const toIndex = () => {
-    if (Platform.OS === "android") {
-      router.back();
-    } else if (Platform.OS === "ios") {
-      router.push("/");
-    }
+    router.back();
   };
 
   return (
