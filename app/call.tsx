@@ -277,9 +277,30 @@ export default function CallScreen() {
     });
   };
 
+  const getColorByState = () => {
+    switch (wifiState) {
+      case "RED": return 'red';     // Disconnected
+      case "YELLOW": return 'yellow';  // Connecting / Weak
+      case "GREEN": return 'green';   // Connected
+      default: return 'gray';
+    }
+  };
+
   return (
     <SafeAreaView style={styles.main}>
-      <Text style={styles.head}>Video Call Screen</Text>
+      <View style={styles.titleContainer}>
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusLabel}>Status:</Text>
+          <View
+            style={[
+              styles.statusCircle,
+              { backgroundColor: getColorByState() }, // Dynamically set the circle color
+            ]}
+          />
+        </View>
+        <Text style={styles.head}>Video Call Screen</Text>
+      </View>
+
       <View style={styles.btnContainer}>
         {isCalling ? (
           <Text style={styles.buttonDisabled}>Connected to Agent</Text>
@@ -357,6 +378,28 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   main: { flex: 1, alignItems: "center" },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  statusLabel: {
+    fontSize: 16,
+    marginRight: 5,
+  },
+  statusCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "gray",
+  },
   scroll: { flex: 1, backgroundColor: "#ddeeff", width: "100%" },
   scrollContainer: { alignItems: "center" },
   videoView: { width: "90%", height: 200 },
