@@ -70,9 +70,9 @@ export default function CallScreen() {
       vkycTpcConfig.socketBaseUrl,
       channelName,
       apiToken,
-      // (message) => {
-        // console.log(`[${new Date()}]`, message);
-      // }
+      (message) => {
+        console.log(`[${new Date()}]`, message);
+      }
     );
 
     socketService.registerEventHandler({
@@ -110,9 +110,12 @@ export default function CallScreen() {
               console.log("No available agent.");
               toResult(MessageCode.CALL_EXPIRED);
               break;
-            case "KYC_STARTED":
+            case "CALL_TIMEOUT":
+              console.log("Call timed out.");
+              toResult(MessageCode.CALL_TIMEOUT);
+            case "STARTED_KYC":
             case "KYC_PASSED":
-            case "LEGAL_PAPER_PASSED":
+            case "LEGAL_PAPERS_PASSED":
               console.log("Displaying contract...");
               Alert.alert(
                 "Info",
