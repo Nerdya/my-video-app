@@ -18,7 +18,6 @@ export default function CallScreen() {
   const params = useLocalSearchParams();
 
   const [socketMessages, setSocketMessages] = useState<string[]>([]);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleBackNavigation = () => {
     if (segments[0] !== "call") return false; // Prevent back handling if not on CallScreen
@@ -28,7 +27,7 @@ export default function CallScreen() {
       "You are currently in the call. Are you sure you want to leave?",
       [
         { text: "Cancel", style: "cancel", onPress: () => {} },
-        { text: "Yes, Leave", style: "destructive", onPress: () => toResult(MessageCode.FORCE_DISCONNECT) },
+        { text: "Yes, Leave", style: "destructive", onPress: () => toResult(MessageCode.END_CALL_EARLY) },
       ],
       { cancelable: true }
     );
@@ -60,6 +59,7 @@ export default function CallScreen() {
     },
   });
   const [isHooking, setIsHooking] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
 
   const socketService = createSocketService();
@@ -68,10 +68,10 @@ export default function CallScreen() {
   const connectSocket = async () => {
     socketService.initialize(
       vkycTpcConfig.socketBaseUrl,
-      appId,
+      channelName,
       apiToken,
       // (message) => {
-      //   console.log(`[${new Date()}]`, message);
+        // console.log(`[${new Date()}]`, message);
       // }
     );
 
@@ -93,19 +93,46 @@ export default function CallScreen() {
         setSocketMessages((prev) => [...prev, `STOMP connected.`]);
         socketService.subscribeSessionNotifyTopic((message) => {
           console.log("Session notify:", message.body);
-          setSocketMessages((prev) => [...prev, `Session notify: ${JSON.stringify(message.body)}`]);
+          const eventType = JSON.parse(message.body)?.eventType;
+          setSocketMessages((prev) => [...prev, `Session notify: ${eventType}`]);
+          switch (eventType) {
+            case "START_CALL":
+              console.log("Call started.");
+              break;
+            case "END_CALL":
+              console.log("Agent left the call.");
+              toResult(MessageCode.SUCCESS);
+              break;
+          }
         });
         socketService.subscribeSocketNotifyTopic((message) => {
           console.log("Socket notify:", message.body);
-          setSocketMessages((prev) => [...prev, `Socket notify: ${JSON.stringify(message.body)}`]);
+          const type = JSON.parse(message.body)?.type;
+          setSocketMessages((prev) => [...prev, `Socket notify: ${type}`]);
+          switch (type) {
+            case "CALL_EXPIRED":
+              console.log("No available agent.");
+              toResult(MessageCode.CALL_EXPIRED);
+              break;
+            case "KYC_STARTED":
+            case "KYC_PASSED":
+            case "LEGAL_PAPER_PASSED":
+              console.log("Displaying contract...");
+              Alert.alert(
+                "Info",
+                "This is a PDF contract file",
+                [{ text: "OK", onPress: () => console.log("Contract dismissed.") }]
+              );
+              break;
+          }
         });
         socketService.subscribeSocketHealthTopic((message) => {
           console.log("Socket health:", message.body);
-          setSocketMessages((prev) => [...prev, `Socket health: ${JSON.stringify(message.body)}`]);
+          setSocketMessages((prev) => [...prev, `Socket health: ${message.body}`]);
         });
         socketService.subscribeAppLiveTopic((message) => {
           console.log("App live:", message.body);
-          setSocketMessages((prev) => [...prev, `App live: ${JSON.stringify(message.body)}`]);
+          setSocketMessages((prev) => [...prev, `App live: ${message.body}`]);
         });
       },
       onDisconnect: (frame) => {
@@ -114,15 +141,12 @@ export default function CallScreen() {
       },
       onStompError: (frame) => {
         console.error("STOMP error:", frame);
-        setSocketMessages((prev) => [...prev, `STOMP error: ${JSON.stringify(frame)}`]);
       },
       onWebSocketClose: (event) => {
         console.warn("WebSocket closed:", event);
-        setSocketMessages((prev) => [...prev, `WebSocket closed.`]);
       },
       onWebSocketError: (event) => {
         console.error("WebSocket error:", event);
-        setSocketMessages((prev) => [...prev, `WebSocket error: ${JSON.stringify(event)}`]);
       },
       // onChangeState: (state) => {
       //   console.log("State changed:", state);
@@ -180,22 +204,21 @@ export default function CallScreen() {
   }, []);
 
   const hook = async () => {
-    if (isHooking) {
+    if (isHooking || isCalling) {
       return;
     }
     setIsHooking(true);
-    setErrorMessage(``);
     try {
-      const res = await apiService?.hook(appId, channelName);
+      const res = await apiService?.hook(channelName, channelName);
       if (!res?.status) {
-        setErrorMessage(`Invalid response from hook API: ${JSON.stringify(res)}`);
+        toResult(MessageCode.ERROR_HOOK, `Invalid response from hook API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Hooked successfully:", res);
+      setIsCalling(true);
       socketService.startHealthCheck(socketServiceInstance);
     } catch (error) {
-      setErrorMessage(`Exception: ${error}`);
-      toResult(MessageCode.ERROR_CLOSE_VIDEO);
+      toResult(MessageCode.ERROR_HOOK, `Exception: ${error}`);
     } finally {
       setIsHooking(false);
     }
@@ -207,24 +230,28 @@ export default function CallScreen() {
       return;
     }
     setIsClosingVideo(true);
-    setErrorMessage(``);
+    if (!isCalling) {
+      console.log("No active call to leave.");
+      setIsClosingVideo(false);
+      toResult(MessageCode.END_CALL_EARLY);
+      return;
+    }
     try {
       const res = await apiService?.closeVideo(channelName);
       if (!res?.status) {
-        setErrorMessage(`Invalid response from closeVideo API: ${JSON.stringify(res)}`);
+        toResult(MessageCode.ERROR_CLOSE_VIDEO, `Invalid response from closeVideo API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Closed video successfully:", res);
       toResult(MessageCode.SUCCESS);
     } catch (error) {
-      setErrorMessage(`Exception: ${error}`);
-      toResult(MessageCode.ERROR_CLOSE_VIDEO);
+      toResult(MessageCode.ERROR_CLOSE_VIDEO, `Exception: ${error}`);
     } finally {
       setIsClosingVideo(false);
     }
   }
 
-  const toResult = (code: MessageCode) => {
+  const toResult = (code: MessageCode, errorMessage = "") => {
     router.replace({
       pathname: "/result",
       params: { code: encodeURIComponent(code), detail: encodeURIComponent(errorMessage) },
@@ -235,9 +262,13 @@ export default function CallScreen() {
     <SafeAreaView style={styles.main}>
       <Text style={styles.head}>Video Call Screen</Text>
       <View style={styles.btnContainer}>
-        <Text onPress={hook} style={styles.button}>
-          {isHooking ? "Connecting to Agent..." : "Connect to Agent"}
-        </Text>
+        {isCalling ? (
+          <Text style={styles.buttonDisabled}>Connected to Agent</Text>
+        ) : (
+          <Text onPress={hook} style={styles.button}>
+            {isHooking ? "Connecting to Agent..." : "Connect to Agent"}
+          </Text>
+        )}
         <Text onPress={closeVideo} style={styles.button}>
           {isClosingVideo ? "Ending Call..." : "End Call"}
         </Text>
@@ -282,11 +313,6 @@ export default function CallScreen() {
                 </Text>
               ))}
             </View>
-
-            {/* Display error message */}
-            {errorMessage ? (
-              <Text style={styles.errorMessage}>{errorMessage}</Text>
-            ) : null}
           </React.Fragment>
         )}
       </ScrollView>
@@ -301,6 +327,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#ffffff",
     backgroundColor: "#0055cc",
+    margin: 5,
+  },
+  buttonDisabled: {
+    paddingHorizontal: 25,
+    paddingVertical: 4,
+    fontWeight: "bold",
+    color: "#666666",
+    backgroundColor: "#cccccc",
     margin: 5,
   },
   main: { flex: 1, alignItems: "center" },
@@ -321,10 +355,5 @@ const styles = StyleSheet.create({
   socketMessage: {
     fontSize: 14,
     marginBottom: 5,
-  },
-  errorMessage: {
-    color: "red",
-    marginTop: 10,
-    textAlign: "center",
   },
 });
