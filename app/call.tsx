@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
+} from "react-native";
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
 
@@ -17,6 +17,7 @@ export default function CallScreen() {
   const segments = useSegments();
   const params = useLocalSearchParams();
 
+  const [socketMessages, setSocketMessages] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleBackNavigation = () => {
@@ -27,7 +28,7 @@ export default function CallScreen() {
       "You are currently in the call. Are you sure you want to leave?",
       [
         { text: "Cancel", style: "cancel", onPress: () => {} },
-        { text: "Yes, Leave", style: "destructive", onPress: () => toResult(MessageCode.FORCE_LEAVE) },
+        { text: "Yes, Leave", style: "destructive", onPress: () => toResult(MessageCode.FORCE_DISCONNECT) },
       ],
       { cancelable: true }
     );
@@ -69,53 +70,62 @@ export default function CallScreen() {
       vkycTpcConfig.socketBaseUrl,
       appId,
       apiToken,
-      (message) => {
-        console.log(`[${new Date()}]`, message);
-      }
+      // (message) => {
+      //   console.log(`[${new Date()}]`, message);
+      // }
     );
 
     socketService.registerEventHandler({
-      onUnhandledMessage: (message) => {
-        console.warn('Unhandled message:', message);
-      },
-      onUnhandledReceipt: (frame) => {
-        console.warn('Unhandled receipt:', frame);
-      },
-      onUnhandledFrame: (frame) => {
-        console.warn('Unhandled frame:', frame);
-      },
-      beforeConnect: async (client) => {
-        console.log('Before connect:', client);
-      },
+      // onUnhandledMessage: (message) => {
+      //   console.warn("Unhandled message:", message);
+      // },
+      // onUnhandledReceipt: (frame) => {
+      //   console.warn("Unhandled receipt:", frame);
+      // },
+      // onUnhandledFrame: (frame) => {
+      //   console.warn("Unhandled frame:", frame);
+      // },
+      // beforeConnect: async (client) => {
+      //   console.log("Before connect:", client);
+      // },
       onConnect: (frame) => {
-        console.info("STOMP connected:", frame);
+        console.log("STOMP connected:", frame);
+        setSocketMessages((prev) => [...prev, `STOMP connected.`]);
         socketService.subscribeSessionNotifyTopic((message) => {
           console.log("Session notify:", message.body);
+          setSocketMessages((prev) => [...prev, `Session notify: ${JSON.stringify(message.body)}`]);
         });
         socketService.subscribeSocketNotifyTopic((message) => {
           console.log("Socket notify:", message.body);
+          setSocketMessages((prev) => [...prev, `Socket notify: ${JSON.stringify(message.body)}`]);
         });
         socketService.subscribeSocketHealthTopic((message) => {
           console.log("Socket health:", message.body);
+          setSocketMessages((prev) => [...prev, `Socket health: ${JSON.stringify(message.body)}`]);
         });
         socketService.subscribeAppLiveTopic((message) => {
           console.log("App live:", message.body);
+          setSocketMessages((prev) => [...prev, `App live: ${JSON.stringify(message.body)}`]);
         });
       },
       onDisconnect: (frame) => {
-        console.warn('STOMP disconnected:', frame);
+        console.log("STOMP disconnected:", frame);
+        setSocketMessages((prev) => [...prev, `STOMP disconnected.`]);
       },
       onStompError: (frame) => {
-        console.error('STOMP error:', frame);
+        console.error("STOMP error:", frame);
+        setSocketMessages((prev) => [...prev, `STOMP error: ${JSON.stringify(frame)}`]);
       },
       onWebSocketClose: (event) => {
-        console.warn('WebSocket closed:', event);
+        console.warn("WebSocket closed:", event);
+        setSocketMessages((prev) => [...prev, `WebSocket closed.`]);
       },
       onWebSocketError: (event) => {
-        console.error('WebSocket error:', event);
+        console.error("WebSocket error:", event);
+        setSocketMessages((prev) => [...prev, `WebSocket error: ${JSON.stringify(event)}`]);
       },
       // onChangeState: (state) => {
-      //   console.log('State changed:', state);
+      //   console.log("State changed:", state);
       // }
     });
 
@@ -174,13 +184,9 @@ export default function CallScreen() {
       return;
     }
     setIsHooking(true);
+    setErrorMessage(``);
     try {
-      if (!apiService) {
-        setErrorMessage(`API service is not available for hook`);
-        return;
-      }
-  
-      const res = await apiService.hook(appId, channelName);
+      const res = await apiService?.hook(appId, channelName);
       if (!res?.status) {
         setErrorMessage(`Invalid response from hook API: ${JSON.stringify(res)}`);
         return;
@@ -189,6 +195,7 @@ export default function CallScreen() {
       socketService.startHealthCheck(socketServiceInstance);
     } catch (error) {
       setErrorMessage(`Exception: ${error}`);
+      toResult(MessageCode.ERROR_CLOSE_VIDEO);
     } finally {
       setIsHooking(false);
     }
@@ -200,25 +207,27 @@ export default function CallScreen() {
       return;
     }
     setIsClosingVideo(true);
+    setErrorMessage(``);
     try {
-      const res = await apiService.closeVideo(channelName);
+      const res = await apiService?.closeVideo(channelName);
       if (!res?.status) {
         setErrorMessage(`Invalid response from closeVideo API: ${JSON.stringify(res)}`);
         return;
       }
       console.log("Closed video successfully:", res);
+      toResult(MessageCode.SUCCESS);
     } catch (error) {
       setErrorMessage(`Exception: ${error}`);
+      toResult(MessageCode.ERROR_CLOSE_VIDEO);
     } finally {
       setIsClosingVideo(false);
-      toResult(MessageCode.SUCCESS);
     }
   }
 
   const toResult = (code: MessageCode) => {
     router.replace({
       pathname: "/result",
-      params: { code: encodeURIComponent(code) },
+      params: { code: encodeURIComponent(code), detail: encodeURIComponent(errorMessage) },
     });
   };
 
@@ -264,6 +273,16 @@ export default function CallScreen() {
               <Text>Waiting for remote user to join</Text>
             )}
 
+            {/* Display socket message */}
+            <View style={styles.socketMessagesContainer}>
+              <Text style={styles.socketMessagesHeader}>Socket Messages:</Text>
+              {socketMessages.map((msg, index) => (
+                <Text key={index} style={styles.socketMessage}>
+                  {msg}
+                </Text>
+              ))}
+            </View>
+
             {/* Display error message */}
             {errorMessage ? (
               <Text style={styles.errorMessage}>{errorMessage}</Text>
@@ -279,17 +298,30 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: 25,
     paddingVertical: 4,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    backgroundColor: '#0055cc',
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#0055cc",
     margin: 5,
   },
-  main: { flex: 1, alignItems: 'center' },
-  scroll: { flex: 1, backgroundColor: '#ddeeff', width: '100%' },
-  scrollContainer: { alignItems: 'center' },
-  videoView: { width: '90%', height: 200 },
-  btnContainer: { flexDirection: 'row', justifyContent: 'center' },
+  main: { flex: 1, alignItems: "center" },
+  scroll: { flex: 1, backgroundColor: "#ddeeff", width: "100%" },
+  scrollContainer: { alignItems: "center" },
+  videoView: { width: "90%", height: 200 },
+  btnContainer: { flexDirection: "row", justifyContent: "center" },
   head: { fontSize: 20 },
+  socketMessagesContainer: {
+    marginTop: 20,
+    paddingHorizontal: 10,
+  },
+  socketMessagesHeader: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  socketMessage: {
+    fontSize: 14,
+    marginBottom: 5,
+  },
   errorMessage: {
     color: "red",
     marginTop: 10,

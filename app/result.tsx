@@ -6,6 +6,7 @@ export default function ResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const code = decodeURIComponent(params.code as string) as MessageCode;
+  const detail = decodeURIComponent(params.code as string);
 
   const toIndex = () => {
     router.back();
@@ -14,13 +15,19 @@ export default function ResultScreen() {
   const renderMessage = () => {
     switch (code) {
       case MessageCode.SUCCESS:
-        return "Call completed successfully!";
+        return "Kết thúc cuộc gọi thành công.";
+      case MessageCode.FORCE_DISCONNECT:
+        return "Cuộc gọi đã bị ngắt kết nối.";
+      case MessageCode.ERROR_INIT:
+        return "Có lỗi xảy ra khi khởi tạo cuộc gọi.";
+      case MessageCode.ERROR_HOOK:
+        return "Có lỗi xảy ra khi kết nối cuộc gọi.";
+      case MessageCode.ERROR_CLOSE_VIDEO:
+        return "Có lỗi xảy ra khi kết thúc cuộc gọi.";
       case MessageCode.ERROR:
-        return "An error occurred during the call.";
-      case MessageCode.FORCE_LEAVE:
-        return "You have left the call.";
+        return "Có lỗi xảy ra trong quá trình cuộc gọi.";
       default:
-        return "Unknown result.";
+        return "Có lỗi xảy ra.";
     }
   }
 
@@ -29,7 +36,7 @@ export default function ResultScreen() {
       case MessageCode.SUCCESS:
       case MessageCode.ERROR:
         return <Button title="Back to Index" onPress={toIndex} />;
-      case MessageCode.FORCE_LEAVE:
+      case MessageCode.FORCE_DISCONNECT:
         return <Button title="Retry Call" onPress={toIndex} />;
       default:
         return null;
@@ -39,6 +46,7 @@ export default function ResultScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{renderMessage()}</Text>
+      {detail && <Text style={styles.message}>{detail}</Text>}
       {renderButton()}
     </View>
   );

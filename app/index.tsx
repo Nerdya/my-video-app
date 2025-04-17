@@ -46,24 +46,30 @@ export default function IndexScreen() {
     );
   };
 
-  const getConfigInfo = async () => {
-    try {
-      const res = await apiService.getConfigInfo(appointmentId);
-      if (!res?.status) {
-        console.error("Invalid response from getConfigInfo API:", res);
-        return;
-      }
-      console.log("Config info fetched:", res?.data);
-    } catch (error) {
-      console.error("Exception:", error);
-    }
-  }
+  // const getConfigInfo = async () => {
+  //   try {
+  //     const res = await apiService.getConfigInfo(appointmentId);
+  //     if (!res?.status) {
+  //       setErrorMessage(`Invalid response from getConfigInfo API: ${JSON.stringify(res)}`);
+  //       return;
+  //     }
+  //     console.log("Config info fetched:", res?.data);
+  //   } catch (error) {
+  //     setErrorMessage(`Exception: ${error}`);
+  //   }
+  // }
 
   const getIPAddress = async () => {
     try {
-      return await publicIP();
+      const timeout = new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 3000)
+      );
+  
+      const ip = await Promise.race([publicIP(), timeout]);
+      return ip;
     } catch (error) {
-      console.error("Error fetching public IP:", error);
+      setErrorMessage(`Error fetching public IP: ${error}`);
+      return ""; // Return empty string on error or timeout
     }
   };
 

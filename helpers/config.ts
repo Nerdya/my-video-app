@@ -14,6 +14,9 @@ export const vkycTpcConfig = {
 
 export enum MessageCode {
   SUCCESS = 'SUCCESS',
+  FORCE_DISCONNECT = 'FORCE_DISCONNECT',
+  ERROR_INIT = 'ERROR_INIT',
+  ERROR_HOOK = 'ERROR_HOOK',
+  ERROR_CLOSE_VIDEO = 'ERROR_CLOSE_VIDEO',
   ERROR = 'ERROR',
-  FORCE_LEAVE = 'FORCE_LEAVE',
 };
