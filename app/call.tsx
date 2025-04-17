@@ -94,7 +94,8 @@ export default function CallScreen() {
         socketService.subscribeSessionNotifyTopic((message) => {
           console.log("Session notify:", message.body);
           const eventType = JSON.parse(message.body)?.eventType;
-          setSocketMessages((prev) => [...prev, `Session notify: ${eventType}`]);
+          const type = JSON.parse(message.body)?.type;
+          setSocketMessages((prev) => [...prev, `Session notify: ${eventType || type}`]);
           switch (eventType) {
             case "START_CALL":
               console.log("Call started.");
@@ -104,11 +105,6 @@ export default function CallScreen() {
               toResult(MessageCode.SUCCESS);
               break;
           }
-        });
-        socketService.subscribeSocketNotifyTopic((message) => {
-          console.log("Socket notify:", message.body);
-          const type = JSON.parse(message.body)?.type;
-          setSocketMessages((prev) => [...prev, `Socket notify: ${type}`]);
           switch (type) {
             case "CALL_EXPIRED":
               console.log("No available agent.");
@@ -125,6 +121,11 @@ export default function CallScreen() {
               );
               break;
           }
+        });
+        socketService.subscribeSocketNotifyTopic((message) => {
+          console.log("Socket notify:", message.body);
+          const type = JSON.parse(message.body)?.type;
+          setSocketMessages((prev) => [...prev, `Socket notify: ${type}`]);
         });
         socketService.subscribeSocketHealthTopic((message) => {
           console.log("Socket health:", message.body);
@@ -160,6 +161,7 @@ export default function CallScreen() {
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
+  const [wifiState, setWifiState] = useState<"RED" | "YELLOW" | "GREEN">("GREEN");
 
   const joinCall = async () => {
     await vekycService.getPermissions();
@@ -181,6 +183,24 @@ export default function CallScreen() {
       onUserOffline: (_connection, uid) => {
         console.log("onUserOffline", uid);
         setRemoteUid((prevUid) => (prevUid === uid ? 0 : prevUid));
+      },
+      onNetworkQuality: (_connection, uid, txQuality, rxQuality) => {
+        // console.log("onNetworkQuality", uid, txQuality, rxQuality);
+        if (uid === 0) {
+          if (rxQuality > 4 || txQuality > 4 || txQuality === 0 || rxQuality === 0) {
+            setWifiState((prev) => {
+              if (prev !== "RED") {
+                socketService.sendNetworkStatus(rxQuality, txQuality, 'true');
+              }
+              return "RED";
+            });
+          } else if (rxQuality === 3 || txQuality === 3 || rxQuality === 4 || txQuality === 4) {
+            setWifiState("YELLOW");
+            socketService.sendNetworkStatus(rxQuality, txQuality, null);
+          } else {
+            setWifiState("GREEN");
+          }
+        }
       },
     });
 
@@ -214,6 +234,7 @@ export default function CallScreen() {
         toResult(MessageCode.ERROR_HOOK, `Invalid response from hook API: ${JSON.stringify(res)}`);
         return;
       }
+
       console.log("Hooked successfully:", res);
       setIsCalling(true);
       socketService.startHealthCheck(socketServiceInstance);
@@ -230,18 +251,16 @@ export default function CallScreen() {
       return;
     }
     setIsClosingVideo(true);
-    if (!isCalling) {
-      console.log("No active call to leave.");
-      setIsClosingVideo(false);
-      toResult(MessageCode.END_CALL_EARLY);
-      return;
-    }
     try {
       const res = await apiService?.closeVideo(channelName);
+      // Add a 3-second timeout to check for remaining sockets
+      console.log("Checking for remaining sockets...");
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       if (!res?.status) {
         toResult(MessageCode.ERROR_CLOSE_VIDEO, `Invalid response from closeVideo API: ${JSON.stringify(res)}`);
         return;
       }
+
       console.log("Closed video successfully:", res);
       toResult(MessageCode.SUCCESS);
     } catch (error) {
