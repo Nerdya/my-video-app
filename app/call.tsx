@@ -70,9 +70,9 @@ export default function CallScreen() {
       vkycTpcConfig.socketBaseUrl,
       channelName,
       apiToken,
-      (message) => {
-        console.log(`[${new Date()}]`, message);
-      }
+      // (message) => {
+      //   console.log(`[${new Date()}]`, message);
+      // }
     );
 
     socketService.registerEventHandler({
@@ -116,6 +116,7 @@ export default function CallScreen() {
             case "STARTED_KYC":
             case "KYC_PASSED":
             case "LEGAL_PAPERS_PASSED":
+            case "UPDATE_PAPERS_SUCCESS":
               console.log("Displaying contract...");
               Alert.alert(
                 "Info",
@@ -255,10 +256,16 @@ export default function CallScreen() {
     }
     setIsClosingVideo(true);
     try {
+      if (!isCalling) {
+        console.log("Call not started yet, redirecting to result screen.");
+        toResult(MessageCode.END_CALL_EARLY);
+        return;
+      }
+
       const res = await apiService?.closeVideo(channelName);
-      // Add a 3-second timeout to check for remaining sockets
+      // Add a timeout to check for remaining sockets
       console.log("Checking for remaining sockets...");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       if (!res?.status) {
         toResult(MessageCode.ERROR_CLOSE_VIDEO, `Invalid response from closeVideo API: ${JSON.stringify(res)}`);
         return;
@@ -306,10 +313,10 @@ export default function CallScreen() {
 
       <View style={styles.btnContainer}>
         {isCalling ? (
-          <Text style={styles.buttonDisabled}>Connected to Agent</Text>
+          <Text style={styles.buttonDisabled}>Joined Call</Text>
         ) : (
           <Text onPress={hook} style={styles.button}>
-            {isHooking ? "Connecting to Agent..." : "Connect to Agent"}
+            {isHooking ? "Joining Call..." : "Join Call"}
           </Text>
         )}
         <Text onPress={closeVideo} style={styles.button}>
