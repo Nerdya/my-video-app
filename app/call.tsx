@@ -8,9 +8,11 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from "react-native";
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
+import * as Device from 'expo-device';
 
 export default function CallScreen() {
   const router = useRouter();
@@ -64,6 +66,32 @@ export default function CallScreen() {
 
   const socketService = createSocketService();
   const [socketServiceInstance, setSocketServiceInstance] = useState(socketService);
+
+  const getDeviceInfoExpo = (): { os: string; device: string } => {
+    try {
+      const deviceTypeToStringMap = {
+        [Device.DeviceType.UNKNOWN]: 'Unknown',
+        [Device.DeviceType.PHONE]: 'Handset',
+        [Device.DeviceType.TABLET]: 'Tablet',
+        [Device.DeviceType.TV]: 'TV',
+        [Device.DeviceType.DESKTOP]: 'Desktop',
+      };
+
+      const os = `${Platform.OS} ${Device.osVersion || 'Unknown'}`;
+      const device = deviceTypeToStringMap[Device.deviceType || Device.DeviceType.UNKNOWN] || 'Unknown';
+
+      return {
+        os,
+        device,
+      };
+    } catch (err) {
+      console.warn('Device info unavailable', err);
+      return {
+        os: 'Unknown',
+        device: 'Unknown',
+      };
+    }
+  }
 
   const connectSocket = async () => {
     socketService.initialize(
@@ -158,7 +186,8 @@ export default function CallScreen() {
       // }
     });
 
-    socketService.connect();
+    // Manually provide device info from your project
+    socketService.connect(getDeviceInfoExpo());
     setSocketServiceInstance(socketService);
   };
 

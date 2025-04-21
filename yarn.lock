@@ -5183,6 +5183,13 @@ expo-dev-menu@6.0.21:
   dependencies:
     expo-dev-menu-interface "1.9.3"
 
+expo-device@~7.0.3:
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/expo-device/-/expo-device-7.0.3.tgz#e8d502ac5ff7644dd617fa38a71fe49e7508856b"
+  integrity sha512-uNGhDYmpDj/3GySWZmRiYSt52Phdim11p0pXfgpCq/nMks0+UPZwl3D0vin5N8/gpVe5yzb13GYuFxiVoDyniw==
+  dependencies:
+    ua-parser-js "^0.7.33"
+
 expo-file-system@~18.0.12:
   version "18.0.12"
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-18.0.12.tgz#6ceeeb0725f6c5faaf58112f18c073c2acfb3027"
@@ -8704,10 +8711,10 @@ react-native-screens@~4.4.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-vpage-sdk@^0.0.48:
-  version "0.0.48"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.48.tgz#84e21be486fa88cc5564e896cb64cf6647503b6f"
-  integrity sha512-rKW3FoJ7PdtenroF8Us2A6LW0nKh6nGNF272gq/F8wdDRKkjdMPXjLrhXieYYE5zOt3/6NIbsJ5pqXwdQv3JLQ==
+react-native-vpage-sdk@^0.0.55:
+  version "0.0.55"
+  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.55.tgz#bb8ada2e1c4f6c0e2756bc5a8a9261f58d053c16"
+  integrity sha512-RS6Wag9GhNwNx7piYWyb5TS1gHIunxWO/0AHZOZZ7PsIMVmmbu7dst+nxgi+WTWEV0/eQ/8hRWmvlAppBUypRw==
   dependencies:
     "@stomp/stompjs" "^7.1.1"
     axios "^1.8.4"
@@ -8715,6 +8722,7 @@ react-native-vpage-sdk@^0.0.48:
     react-native "^0.78.1"
     react-native-agora "^4.5.2"
     react-native-crypto-js "^1.0.0"
+    react-native-public-ip "^1.0.2"
     sockjs-client "^1.6.1"
 
 react-native-web@~0.19.13:
@@ -10232,6 +10240,11 @@ typescript@^5.3.3:
   version "5.8.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.8.2.tgz#8170b3702f74b79db2e5a96207c15e65807999e4"
   integrity sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==
+
+ua-parser-js@^0.7.33:
+  version "0.7.40"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.40.tgz#c87d83b7bb25822ecfa6397a0da5903934ea1562"
+  integrity sha512-us1E3K+3jJppDBa3Tl0L3MOJiGhe1C6P0+nIvQAFYbxlMAx0h81eOwLmU57xgqToduDDPx3y5QsdjPfDu+FgOQ==
 
 ua-parser-js@^1.0.35:
   version "1.0.40"

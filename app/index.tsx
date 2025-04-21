@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, Text, Button, TextInput } from "react-native";
-import publicIP from "react-native-public-ip";
 import { createCryptoService, createAPIService } from "react-native-vpage-sdk";
 import { EnvConfig, vkycTpcConfig } from "@/helpers/config";
 
@@ -46,32 +45,18 @@ export default function IndexScreen() {
     );
   };
 
-  // const getConfigInfo = async () => {
-  //   try {
-  //     const res = await apiService.getConfigInfo(appointmentId);
-  //     if (!res?.status) {
-  //       setErrorMessage(`Invalid response from getConfigInfo API: ${JSON.stringify(res)}`);
-  //       return;
-  //     }
-  //     console.log("Config info fetched:", res?.data);
-  //   } catch (error) {
-  //     setErrorMessage(`Exception: ${error}`);
-  //   }
-  // }
-
-  const getIPAddress = async () => {
+  const getConfigInfo = async () => {
     try {
-      const timeout = new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), 3000)
-      );
-  
-      const ip = await Promise.race([publicIP(), timeout]);
-      return ip;
+      const res = await apiService.getConfigInfo(appointmentId);
+      if (!res?.status) {
+        setErrorMessage(`Invalid response from getConfigInfo API: ${JSON.stringify(res)}`);
+        return;
+      }
+      console.log("Config info fetched:", res?.data);
     } catch (error) {
-      setErrorMessage(`Error fetching public IP: ${error}`);
-      return ""; // Return empty string on error or timeout
+      setErrorMessage(`Exception: ${error}`);
     }
-  };
+  }
 
   const createMeeting = async () => {
     if (isCreatingMeeting) {
@@ -80,7 +65,7 @@ export default function IndexScreen() {
     setIsCreatingMeeting(true);
     setErrorMessage(``);
     try {
-      const customerIp = await getIPAddress() || "";
+      const customerIp = await apiService.getIPAddress();
       const res = await apiService.createMeeting(appointmentId, customerIp);
       if (!res?.status || !res?.data?.sessionId || !res?.data?.key || !res?.data?.code || !res?.data?.subId) {
         setErrorMessage(`Invalid response from createMeeting API: ${JSON.stringify(res)}`);
