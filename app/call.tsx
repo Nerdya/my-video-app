@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSegments, useLocalSearchParams } from "expo-router";
 import {
   Alert,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Text,
   View,
+  Modal,
+  Button,
 } from "react-native";
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
@@ -61,6 +63,21 @@ export default function CallScreen() {
   const [isHooking, setIsHooking] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
+  const [steps, setSteps] = useState<any[]>([]);
+
+  const getConfigInfo = async () => {
+    try {
+      const res = await apiService.getConfigInfo(appointmentId);
+      if (!res?.status) {
+        console.error("Invalid response from getConfigInfo API:", res);
+        return;
+      }
+      console.log("Config info fetched:", res?.data);
+      setSteps(res?.data?.steps || []);
+    } catch (error) {
+      console.error("Exception:", error);
+    }
+  }
 
   const socketService = createSocketService();
   const [socketServiceInstance, setSocketServiceInstance] = useState(socketService);
@@ -113,6 +130,7 @@ export default function CallScreen() {
             case "CALL_TIMEOUT":
               console.log("Call timed out.");
               toResult(MessageCode.CALL_TIMEOUT);
+              break;
             case "STARTED_KYC":
             case "KYC_PASSED":
             case "LEGAL_PAPERS_PASSED":
@@ -165,7 +183,17 @@ export default function CallScreen() {
   const vekycService = createVekycService();
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
-  const [wifiState, setWifiState] = useState<"RED" | "YELLOW" | "GREEN">("GREEN");
+  const [wifiState, setWifiState] = useState<"RED" | "YELLOW" | "GREEN">("RED");
+  const [connectionState, setConnectionState] = useState(0);
+  const connectionStateRef = useRef(connectionState);
+  const [modalContent, setModalContent] = useState<any>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [reconnectTimeout, setReconnectTimeout] = useState<any>();
+  const [disconnectTimeout, setDisconnectTimeout] = useState<any>();
+
+  useEffect(() => {
+    connectionStateRef.current = connectionState;
+  }, [connectionState]);
 
   const joinCall = async () => {
     await vekycService.getPermissions();
@@ -206,12 +234,79 @@ export default function CallScreen() {
           }
         }
       },
+      onConnectionStateChanged(_connection, state) {
+        // console.log("onConnectionStateChanged", state);
+        setConnectionState((prev) => {
+          // console.log("Previous connection state:", prev);
+          switch (state) {
+            case 1: // Disconnected
+              break;
+            case 2: // Connecting
+              break;
+            case 3: // Connected
+              if (prev === 4) {
+                setIsModalVisible(false);
+                clearTimeout(reconnectTimeout);
+                setReconnectTimeout(null);
+                clearTimeout(disconnectTimeout);
+                setDisconnectTimeout(null);
+              }
+              break;
+            case 4: // Reconnecting
+              if (prev === 3) {
+                const backToHome = () => {
+                  setIsModalVisible(false);
+                  toResult(MessageCode.END_CALL_EARLY);
+                }
+                if (!reconnectTimeout) {
+                  setReconnectTimeout(
+                    setTimeout(() => {
+                      if (connectionStateRef.current !== 4) {
+                        return;
+                      }
+                      setModalContent(
+                        <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
+                          <Text style={{ fontSize: 16 }}>Kết nối mạng chập chờn...</Text>
+                        </View>
+                      );
+                      setIsModalVisible(true);
+                    }, 10000)
+                );
+                }
+                if (!disconnectTimeout) {
+                  setDisconnectTimeout(
+                    setTimeout(() => {
+                      if (connectionStateRef.current !== 4) {
+                        return;
+                      }
+                      setModalContent(
+                        <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
+                          <Text style={{ fontSize: 16, marginBottom: 10 }}>Bạn đã bị mất kết nối.</Text>
+                          <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng quay lại trang chủ.</Text>
+                          <Button title="Quay lại trang chủ" onPress={backToHome}></Button>
+                        </View>
+                      );
+                      setIsModalVisible(true);
+                    }, 60000)
+                  );
+                }
+              }
+              break;
+            case 5: // Failed
+              break;
+          }
+          return state;
+        });
+      },
     });
 
     await vekycService.joinChannel(token, channelName, localUid, {});
   };
 
   useEffect(() => {
+    console.log("Getting config info...");
+    getConfigInfo();
+
     console.log("Initializing socket connection...");
     connectSocket();
 
@@ -366,6 +461,30 @@ export default function CallScreen() {
           </React.Fragment>
         )}
       </ScrollView>
+      <Modal visible={isModalVisible} transparent={true}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        }}
+      >
+        <View
+          style={{
+            width: "90%",
+            height: "20%",
+            backgroundColor: "white",
+            borderRadius: 10,
+            padding: 20,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {modalContent}
+        </View>
+      </View>
+      </Modal>
     </SafeAreaView>
   );
 }

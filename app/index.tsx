@@ -45,19 +45,6 @@ export default function IndexScreen() {
     );
   };
 
-  const getConfigInfo = async () => {
-    try {
-      const res = await apiService.getConfigInfo(appointmentId);
-      if (!res?.status) {
-        setErrorMessage(`Invalid response from getConfigInfo API: ${JSON.stringify(res)}`);
-        return;
-      }
-      console.log("Config info fetched:", res?.data);
-    } catch (error) {
-      setErrorMessage(`Exception: ${error}`);
-    }
-  }
-
   const createMeeting = async () => {
     if (isCreatingMeeting) {
       return;
