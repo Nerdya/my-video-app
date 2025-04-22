@@ -181,6 +181,8 @@ export default function CallScreen() {
   };
 
   const vekycService = createVekycService();
+  const [vekycServiceInstance, setVekycServiceInstance] = useState(vekycService);
+
   const [isJoined, setIsJoined] = useState(false);
   const [remoteUid, setRemoteUid] = useState(0);
   const [wifiState, setWifiState] = useState<"RED" | "YELLOW" | "GREEN">("RED");
@@ -301,7 +303,19 @@ export default function CallScreen() {
     });
 
     await vekycService.joinChannel(token, channelName, localUid, {});
+    setVekycServiceInstance(vekycService);
   };
+
+  const [isMicrophoneEnabled, setIsMicrophoneEnabled] = useState(true);
+
+  const toggleMicrophone = () => {
+    vekycServiceInstance.toggleMicrophone(!isMicrophoneEnabled);
+    setIsMicrophoneEnabled((prev) => !prev);
+  };
+
+  const switchCamera = () => {
+    vekycServiceInstance.switchCamera();
+  }
 
   useEffect(() => {
     console.log("Getting config info...");
@@ -417,6 +431,12 @@ export default function CallScreen() {
         <Text onPress={closeVideo} style={styles.button}>
           {isClosingVideo ? "Ending Call..." : "End Call"}
         </Text>
+        <Text onPress={toggleMicrophone} style={styles.button}>
+          {isMicrophoneEnabled ? "Mute Microphone" : "Unmute Microphone"}
+        </Text>
+        <Text onPress={switchCamera} style={styles.button}>
+          Switch Camera
+        </Text>
       </View>
       <ScrollView
         style={styles.scroll}
@@ -490,29 +510,13 @@ export default function CallScreen() {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    paddingHorizontal: 25,
-    paddingVertical: 4,
-    fontWeight: "bold",
-    color: "#ffffff",
-    backgroundColor: "#0055cc",
-    margin: 5,
-  },
-  buttonDisabled: {
-    paddingHorizontal: 25,
-    paddingVertical: 4,
-    fontWeight: "bold",
-    color: "#666666",
-    backgroundColor: "#cccccc",
-    margin: 5,
-  },
   main: { flex: 1, alignItems: "center" },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
     paddingHorizontal: 10,
-    marginBottom: 10,
+    marginTop: 10,
   },
   statusContainer: {
     flexDirection: "row",
@@ -529,10 +533,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "gray",
   },
+  btnContainer: {
+    width: "90%",
+    flexDirection: "row",
+    flexWrap: "wrap", // Allow buttons to wrap to the next line
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  button: {
+    paddingHorizontal: 25,
+    paddingVertical: 4,
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#0055cc",
+    margin: 5,
+    textAlign: "center",
+  },
+  buttonDisabled: {
+    paddingHorizontal: 25,
+    paddingVertical: 4,
+    fontWeight: "bold",
+    color: "#666666",
+    backgroundColor: "#cccccc",
+    margin: 5,
+    textAlign: "center",
+  },
   scroll: { flex: 1, backgroundColor: "#ddeeff", width: "100%" },
   scrollContainer: { alignItems: "center" },
   videoView: { width: "90%", height: 200 },
-  btnContainer: { flexDirection: "row", justifyContent: "center" },
   head: { fontSize: 20 },
   socketMessagesContainer: {
     marginTop: 20,
