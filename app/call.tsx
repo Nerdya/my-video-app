@@ -10,9 +10,11 @@ import {
   View,
   Modal,
   Button,
+  Platform,
 } from "react-native";
 import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
+import RNFS from "react-native-fs";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -63,7 +65,14 @@ export default function CallScreen() {
   const [isHooking, setIsHooking] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [steps, setSteps] = useState<any[]>([]);
+  const stepsRef = useRef(steps);
+
+  useEffect(() => {
+    stepsRef.current = steps;
+  }, [steps]);
 
   const getConfigInfo = async () => {
     try {
@@ -74,13 +83,108 @@ export default function CallScreen() {
       }
       console.log("Config info fetched:", res?.data);
       setSteps(res?.data?.steps || []);
+      return res;
     } catch (error) {
       console.error("Exception:", error);
     }
   }
 
+  const getContractList = async () => {
+    try {
+      const res = await apiService.getContractList(channelName);
+      if (!res?.status) {
+        console.error("Invalid response from getContractList API:", res);
+        return;
+      }
+      console.log("Contract list fetched:", res?.data);
+      return res?.data;
+    } catch (error) {
+      console.error("Exception:", error);
+    }
+  }
+
+  // const getContractURL = async () => {
+  //   try {
+  //     const res = await apiService.getContractURL(channelName);
+  //     if (!res?.status) {
+  //       console.error("Invalid response from getContractURL API:", res);
+  //       return;
+  //     }
+  //     console.log("Contract URL fetched:", res?.data);
+  //     return res?.data;
+  //   } catch (error) {
+  //     console.error("Exception:", error);
+  //   }
+  // }
+
+  const downloadContract = async () => {
+    if (isDownloading) {
+      return;
+    }
+    setIsDownloading(true);
+    try {
+      const data = await getContractList();
+      if (!data) {
+        console.error("Invalid contractListData:", data);
+        return;
+      }
+      const fromUrl = data?.[0]?.url;
+      const toFile =
+      Platform.OS === "android"
+        ? `${RNFS.DownloadDirectoryPath}/${data?.[0]?.name}.${data?.[0]?.fileType}` // Android Downloads folder
+        : `${RNFS.DocumentDirectoryPath}/${data?.[0]?.name}.${data?.[0]?.fileType}`; // iOS Documents folder
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl,
+        toFile,
+      }).promise;
+      if (downloadResult.statusCode === 200) {
+        console.log("Download successful:", downloadResult);
+        Alert.alert("Download successful", `File saved to: ${toFile}`);
+      } else {
+        console.error("Download failed:", downloadResult);
+        Alert.alert("Download failed", `Status code: ${downloadResult.statusCode}`);
+      }
+    } catch (error) {
+      console.error("Exception:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
+  const confirmContract = async () => {
+    if (isConfirming) {
+      return;
+    }
+    setIsConfirming(true);
+    try {
+      const res = await apiService.confirmContract(channelName);
+      if (!res?.status) {
+        console.error("Invalid response from confirmContract API:", res);
+        return;
+      }
+      console.log("Contract confirmed:", res?.data);
+      setIsModalVisible(false);
+    } catch (error) {
+      console.error("Exception:", error);
+    } finally {
+      setIsConfirming(false);
+    }
+  }
+
   const socketService = createSocketService();
   const [socketServiceInstance, setSocketServiceInstance] = useState(socketService);
+  const [areLegalPapersPassed, setAreLegalPapersPassed] = useState(false);
+  const areLegalPapersPassedRef = useRef(areLegalPapersPassed);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const isCompletedRef = useRef(isCompleted);
+
+  useEffect(() => {
+    areLegalPapersPassedRef.current = areLegalPapersPassed;
+  }, [areLegalPapersPassed]);
+
+  useEffect(() => {
+    isCompletedRef.current = isCompleted;
+  }, [isCompleted]);
 
   const connectSocket = async () => {
     socketService.initialize(
@@ -108,39 +212,76 @@ export default function CallScreen() {
       onConnect: (frame) => {
         console.log("STOMP connected:", frame);
         setSocketMessages((prev) => [...prev, `STOMP connected.`]);
-        socketService.subscribeSessionNotifyTopic((message) => {
+        socketService.subscribeSessionNotifyTopic(async (message) => {
           console.log("Session notify:", message.body);
           const eventType = JSON.parse(message.body)?.eventType;
           const type = JSON.parse(message.body)?.type;
           setSocketMessages((prev) => [...prev, `Session notify: ${eventType || type}`]);
-          switch (eventType) {
-            case "START_CALL":
+          const areArraysEqual = (arrayA: any[], arrayB: any[]): boolean => {
+            if (arrayA.length !== arrayB.length) {
+              return false;
+            }
+            return arrayA.every((step, index) => step === arrayB[index]);
+          }
+          const contractModal = (
+            <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
+              <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng xác thực hợp đồng.</Text>
+              <Button title={isDownloading ? "Đang tải..." : "Tải hợp đồng"} onPress={downloadContract}/>
+              <Text></Text>
+              <Button title={isConfirming ? "Đang xác thực..." : "Xác thực hợp đồng"} onPress={confirmContract}/>
+              <Text></Text>
+              <Button title="Đóng" onPress={() => setIsModalVisible(false)} color="red"/>
+            </View>
+          );
+          switch (true) {
+            case eventType === "START_CALL":
               console.log("Call started.");
               break;
-            case "END_CALL":
+            case eventType === "END_CALL":
               console.log("Agent left the call.");
-              toResult(MessageCode.SUCCESS);
+              toResult(MessageCode.END_CALL);
               break;
-          }
-          switch (type) {
-            case "CALL_EXPIRED":
+            case type === "CALL_EXPIRED":
               console.log("No available agent.");
               toResult(MessageCode.CALL_EXPIRED);
               break;
-            case "CALL_TIMEOUT":
+            case type === "CALL_TIMEOUT":
               console.log("Call timed out.");
               toResult(MessageCode.CALL_TIMEOUT);
               break;
-            case "STARTED_KYC":
-            case "KYC_PASSED":
-            case "LEGAL_PAPERS_PASSED":
-            case "UPDATE_PAPERS_SUCCESS":
-              console.log("Displaying contract...");
-              Alert.alert(
-                "Info",
-                "This is a PDF contract file",
-                [{ text: "OK", onPress: () => console.log("Contract dismissed.") }]
-              );
+            case type.includes("KYC_PASSED"):
+              console.log("KYC passed.");
+              if (areArraysEqual(stepsRef.current, [1])) {
+                setIsCompleted(true);
+              }
+              if (areArraysEqual(stepsRef.current, [1, 3]) && !areLegalPapersPassedRef.current) {
+                setAreLegalPapersPassed(true);
+                setModalContent(contractModal);
+                setIsModalVisible(true);
+              }
+              break;
+            case type.includes("LEGAL_PAPERS_PASSED") && !areLegalPapersPassedRef.current:
+              console.log("Legal papers passed.");
+              setAreLegalPapersPassed(true);
+              if (areArraysEqual(stepsRef.current, [2]) || areArraysEqual(stepsRef.current, [1, 2])) {
+                setIsCompleted(true);
+              }
+              if (areArraysEqual(stepsRef.current, [2, 3]) || areArraysEqual(stepsRef.current, [1, 2, 3])) {
+                setModalContent(contractModal);
+                setIsModalVisible(true);
+              }
+              break;
+            case type.includes("STARTED_KYC"):
+              console.log("Started KYC.");
+              if (areArraysEqual(stepsRef.current, [3]) && !areLegalPapersPassedRef.current) {
+                setAreLegalPapersPassed(true);
+                setModalContent(contractModal);
+                setIsModalVisible(true);
+              }
+              break;
+            case type === "UPDATE_PAPERS_SUCCESS":
+              console.log("Update papers success.");
+              await getContractList();
               break;
           }
         });
@@ -328,6 +469,10 @@ export default function CallScreen() {
     joinCall();
 
     return () => {
+      console.log("Cleaning modal...");
+      setModalContent(null);
+      setIsModalVisible(false);
+
       console.log("Cleaning up call...");
       vekycService.cleanup();
       
@@ -381,7 +526,7 @@ export default function CallScreen() {
       }
 
       console.log("Closed video successfully:", res);
-      toResult(MessageCode.SUCCESS);
+      toResult(MessageCode.END_CALL);
     } catch (error) {
       toResult(MessageCode.ERROR_CLOSE_VIDEO, `Exception: ${error}`);
     } finally {
@@ -390,9 +535,11 @@ export default function CallScreen() {
   }
 
   const toResult = (code: MessageCode, errorMessage = "") => {
+    const messageCode = [MessageCode.END_CALL, MessageCode.END_CALL_EARLY].includes(code) && isCompletedRef.current ?
+      MessageCode.SUCCESS : code;
     router.replace({
       pathname: "/result",
-      params: { code: encodeURIComponent(code), detail: encodeURIComponent(errorMessage) },
+      params: { code: encodeURIComponent(messageCode), detail: encodeURIComponent(errorMessage) },
     });
   };
 
@@ -482,25 +629,8 @@ export default function CallScreen() {
         )}
       </ScrollView>
       <Modal visible={isModalVisible} transparent={true}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-        }}
-      >
-        <View
-          style={{
-            width: "90%",
-            height: "20%",
-            backgroundColor: "white",
-            borderRadius: 10,
-            padding: 20,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+      <View style={styles.modalMask}>
+        <View style={styles.modalContainer}>
           {modalContent}
         </View>
       </View>
@@ -536,7 +666,7 @@ const styles = StyleSheet.create({
   btnContainer: {
     width: "90%",
     flexDirection: "row",
-    flexWrap: "wrap", // Allow buttons to wrap to the next line
+    flexWrap: "wrap",
     justifyContent: "center",
     marginVertical: 10,
   },
@@ -575,4 +705,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
   },
+  modalMask: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainer: {
+    width: "90%",
+    height: "auto",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });

@@ -14,6 +14,7 @@ export const vkycTpcConfig = {
 
 export enum MessageCode {
   SUCCESS = 'SUCCESS',
+  END_CALL = 'END_CALL',
   END_CALL_EARLY = 'END_CALL_EARLY',
   CALL_EXPIRED = 'CALL_EXPIRED',
   CALL_TIMEOUT = 'CALL_TIMEOUT',

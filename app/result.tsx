@@ -15,6 +15,8 @@ export default function ResultScreen() {
   const renderMessage = () => {
     switch (code) {
       case MessageCode.SUCCESS:
+        return "Hoàn thành đăng ký\nBạn đã hoàn thành Videocall!\nVPBank sẽ thông báo đến bạn khi thẻ được phát hành thành công.";
+      case MessageCode.END_CALL:
       case MessageCode.END_CALL_EARLY:
         return "Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi.\nQuý khách chưa hoàn tất cuộc gọi. Để thực hiện lại việc tự xác thực hoặc gặp tư vấn viên, vui lòng truy cập lại link trong tin nhắn.";
       case MessageCode.CALL_EXPIRED:
@@ -24,7 +26,7 @@ export default function ResultScreen() {
       case MessageCode.ERROR_INIT:
         return "Có lỗi xảy ra khi khởi tạo cuộc gọi.";
       case MessageCode.ERROR_HOOK:
-        return "Có lỗi xảy ra khi kết nối cuộc gọi.";
+        return "Đã quá hạn của phiên xác thực.\nQuý khách vui lòng quay lại màn hình xác thực để tham gia.";
       case MessageCode.ERROR_CLOSE_VIDEO:
         return "Có lỗi xảy ra khi kết thúc cuộc gọi.";
       case MessageCode.ERROR:
@@ -37,6 +39,7 @@ export default function ResultScreen() {
   const renderButton = () => {
     switch (code) {
       case MessageCode.SUCCESS:
+      case MessageCode.END_CALL:
       case MessageCode.END_CALL_EARLY:
         return null;
       case MessageCode.CALL_EXPIRED:
