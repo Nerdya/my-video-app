@@ -164,6 +164,7 @@ export default function CallScreen() {
       }
       console.log("Contract confirmed:", res?.data);
       setIsModalVisible(false);
+      setIsCompleted(true);
     } catch (error) {
       console.error("Exception:", error);
     } finally {
@@ -535,8 +536,15 @@ export default function CallScreen() {
   }
 
   const toResult = (code: MessageCode, errorMessage = "") => {
-    const messageCode = [MessageCode.END_CALL, MessageCode.END_CALL_EARLY].includes(code) && isCompletedRef.current ?
-      MessageCode.SUCCESS : code;
+    console.log("Logic check 1:", [MessageCode.END_CALL, MessageCode.END_CALL_EARLY].includes(code));
+    console.log("Logic check 2:", isCompletedRef.current);
+    let messageCode = code;
+    if ([MessageCode.CALL_EXPIRED].includes(code)) {
+      console.log("toResult CALL_EXPIRED");
+    } else if (isCompletedRef.current) {
+      messageCode = MessageCode.SUCCESS;
+    }
+    console.log("messageCode:", messageCode);
     router.replace({
       pathname: "/result",
       params: { code: encodeURIComponent(messageCode), detail: encodeURIComponent(errorMessage) },
