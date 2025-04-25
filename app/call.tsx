@@ -10,11 +10,10 @@ import {
   View,
   Modal,
   Button,
-  Platform,
 } from "react-native";
-import { createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { ContractAction, createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
-import RNFS from "react-native-fs";
+import { WebView } from "react-native-webview";
 
 export default function CallScreen() {
   const router = useRouter();
@@ -65,7 +64,7 @@ export default function CallScreen() {
   const [isHooking, setIsHooking] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [isClosingVideo, setIsClosingVideo] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [pdfList, setPdfList] = useState<any[]>([]);
   const [isConfirming, setIsConfirming] = useState(false);
   const [steps, setSteps] = useState<any[]>([]);
   const stepsRef = useRef(steps);
@@ -73,6 +72,19 @@ export default function CallScreen() {
   useEffect(() => {
     stepsRef.current = steps;
   }, [steps]);
+
+  const saveLog = async (contractAction: ContractAction, detail: any = null, sessionKey: any = "") => {
+    try {
+      const res = await apiService.saveLog(contractAction, detail, sessionKey);
+      if (!res?.status) {
+        console.error(`Invalid response from saveLog API: ${JSON.stringify(res)}`);
+        return;
+      }
+      console.log("Log saved:", res?.data);
+    } catch (error) {
+      console.error(`Exception: ${error}`);
+    }
+  }
 
   const getConfigInfo = async () => {
     try {
@@ -97,6 +109,7 @@ export default function CallScreen() {
         return;
       }
       console.log("Contract list fetched:", res?.data);
+      setPdfList(res?.data || []);
       return res?.data;
     } catch (error) {
       console.error("Exception:", error);
@@ -117,39 +130,30 @@ export default function CallScreen() {
   //   }
   // }
 
-  const downloadContract = async () => {
-    if (isDownloading) {
-      return;
-    }
-    setIsDownloading(true);
-    try {
-      const data = await getContractList();
-      if (!data) {
-        console.error("Invalid contractListData:", data);
-        return;
-      }
-      const fromUrl = data?.[0]?.url;
-      const toFile =
-      Platform.OS === "android"
-        ? `${RNFS.DownloadDirectoryPath}/${data?.[0]?.name}.${data?.[0]?.fileType}` // Android Downloads folder
-        : `${RNFS.DocumentDirectoryPath}/${data?.[0]?.name}.${data?.[0]?.fileType}`; // iOS Documents folder
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl,
-        toFile,
-      }).promise;
-      if (downloadResult.statusCode === 200) {
-        console.log("Download successful:", downloadResult);
-        Alert.alert("Download successful", `File saved to: ${toFile}`);
-      } else {
-        console.error("Download failed:", downloadResult);
-        Alert.alert("Download failed", `Status code: ${downloadResult.statusCode}`);
-      }
-    } catch (error) {
-      console.error("Exception:", error);
-    } finally {
-      setIsDownloading(false);
-    }
-  }
+  // const downloadContract = async () => {
+  //   try {
+  //     const data = await getContractList();
+  //     if (!data) {
+  //       console.error("Invalid contractListData:", data);
+  //       return;
+  //     }
+  //     const fromUrl = data?.[0]?.url;
+  //     const toFile = `${RNFS.DocumentDirectoryPath}/${data?.[0]?.name}.${data?.[0]?.fileType}`;
+  //     const downloadResult = await RNFS.downloadFile({
+  //       fromUrl,
+  //       toFile,
+  //     }).promise;
+  //     if (downloadResult.statusCode === 200) {
+  //       console.log("Download successful:", downloadResult);
+  //       Alert.alert("Download successful", `File saved to: ${toFile}`);
+  //     } else {
+  //       console.error("Download failed:", downloadResult);
+  //       Alert.alert("Download failed", `Status code: ${downloadResult.statusCode}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Exception:", error);
+  //   }
+  // }
 
   const confirmContract = async () => {
     if (isConfirming) {
@@ -174,14 +178,8 @@ export default function CallScreen() {
 
   const socketService = createSocketService();
   const [socketServiceInstance, setSocketServiceInstance] = useState(socketService);
-  const [areLegalPapersPassed, setAreLegalPapersPassed] = useState(false);
-  const areLegalPapersPassedRef = useRef(areLegalPapersPassed);
   const [isCompleted, setIsCompleted] = useState(false);
   const isCompletedRef = useRef(isCompleted);
-
-  useEffect(() => {
-    areLegalPapersPassedRef.current = areLegalPapersPassed;
-  }, [areLegalPapersPassed]);
 
   useEffect(() => {
     isCompletedRef.current = isCompleted;
@@ -224,16 +222,6 @@ export default function CallScreen() {
             }
             return arrayA.every((step, index) => step === arrayB[index]);
           }
-          const contractModal = (
-            <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
-              <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng xác thực hợp đồng.</Text>
-              <Button title={isDownloading ? "Đang tải..." : "Tải hợp đồng"} onPress={downloadContract}/>
-              <Text></Text>
-              <Button title={isConfirming ? "Đang xác thực..." : "Xác thực hợp đồng"} onPress={confirmContract}/>
-              <Text></Text>
-              <Button title="Đóng" onPress={() => setIsModalVisible(false)} color="red"/>
-            </View>
-          );
           switch (true) {
             case eventType === "START_CALL":
               console.log("Call started.");
@@ -255,28 +243,28 @@ export default function CallScreen() {
               if (areArraysEqual(stepsRef.current, [1])) {
                 setIsCompleted(true);
               }
-              if (areArraysEqual(stepsRef.current, [1, 3]) && !areLegalPapersPassedRef.current) {
-                setAreLegalPapersPassed(true);
-                setModalContent(contractModal);
+              if (areArraysEqual(stepsRef.current, [1, 3])) {
+                await getContractList();
+                setModalContent("CONTRACT");
                 setIsModalVisible(true);
               }
               break;
-            case type.includes("LEGAL_PAPERS_PASSED") && !areLegalPapersPassedRef.current:
+            case type.includes("LEGAL_PAPERS_PASSED"):
               console.log("Legal papers passed.");
-              setAreLegalPapersPassed(true);
               if (areArraysEqual(stepsRef.current, [2]) || areArraysEqual(stepsRef.current, [1, 2])) {
                 setIsCompleted(true);
               }
               if (areArraysEqual(stepsRef.current, [2, 3]) || areArraysEqual(stepsRef.current, [1, 2, 3])) {
-                setModalContent(contractModal);
+                await getContractList();
+                setModalContent("CONTRACT");
                 setIsModalVisible(true);
               }
               break;
             case type.includes("STARTED_KYC"):
               console.log("Started KYC.");
-              if (areArraysEqual(stepsRef.current, [3]) && !areLegalPapersPassedRef.current) {
-                setAreLegalPapersPassed(true);
-                setModalContent(contractModal);
+              if (areArraysEqual(stepsRef.current, [3])) {
+                await getContractList();
+                setModalContent("CONTRACT");
                 setIsModalVisible(true);
               }
               break;
@@ -330,7 +318,7 @@ export default function CallScreen() {
   const [wifiState, setWifiState] = useState<"RED" | "YELLOW" | "GREEN">("RED");
   const [connectionState, setConnectionState] = useState(0);
   const connectionStateRef = useRef(connectionState);
-  const [modalContent, setModalContent] = useState<any>();
+  const [modalContent, setModalContent] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [reconnectTimeout, setReconnectTimeout] = useState<any>();
   const [disconnectTimeout, setDisconnectTimeout] = useState<any>();
@@ -339,8 +327,18 @@ export default function CallScreen() {
     connectionStateRef.current = connectionState;
   }, [connectionState]);
 
-  const joinCall = async () => {
-    await vekycService.getPermissions();
+  const joinChannel = async () => {
+    await saveLog(ContractAction.CUSTOMER_OTP_CONFIRMED, null, channelName);
+    await saveLog(ContractAction.CUSTOMER_TEST_CAM_MIC, null, channelName);
+
+    const permissions = await vekycService.getPermissions();
+
+    // Check if microphone or camera permissions are denied
+    if (!permissions.microphone || !permissions.camera) {
+      setModalContent("DEVICE_DENIED");
+      setIsModalVisible(true);
+      return;
+    }
 
     await vekycService.initialize(appId);
 
@@ -398,21 +396,13 @@ export default function CallScreen() {
               break;
             case 4: // Reconnecting
               if (prev === 3) {
-                const backToHome = () => {
-                  setIsModalVisible(false);
-                  toResult(MessageCode.END_CALL_EARLY);
-                }
                 if (!reconnectTimeout) {
                   setReconnectTimeout(
                     setTimeout(() => {
                       if (connectionStateRef.current !== 4) {
                         return;
                       }
-                      setModalContent(
-                        <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
-                          <Text style={{ fontSize: 16 }}>Kết nối mạng chập chờn...</Text>
-                        </View>
-                      );
+                      setModalContent("RECONNECTING");
                       setIsModalVisible(true);
                     }, 10000)
                 );
@@ -423,13 +413,7 @@ export default function CallScreen() {
                       if (connectionStateRef.current !== 4) {
                         return;
                       }
-                      setModalContent(
-                        <View style={{ padding: 20, backgroundColor: "white", borderRadius: 10 }}>
-                          <Text style={{ fontSize: 16, marginBottom: 10 }}>Bạn đã bị mất kết nối.</Text>
-                          <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng quay lại trang chủ.</Text>
-                          <Button title="Quay lại trang chủ" onPress={backToHome}></Button>
-                        </View>
-                      );
+                      setModalContent("DISCONNECTED");
                       setIsModalVisible(true);
                     }, 60000)
                   );
@@ -460,24 +444,14 @@ export default function CallScreen() {
   }
 
   useEffect(() => {
-    console.log("Getting config info...");
     getConfigInfo();
-
-    console.log("Initializing socket connection...");
     connectSocket();
-
-    console.log("Initializing call...");
-    joinCall();
+    joinChannel();
 
     return () => {
-      console.log("Cleaning modal...");
-      setModalContent(null);
+      setModalContent("");
       setIsModalVisible(false);
-
-      console.log("Cleaning up call...");
       vekycService.cleanup();
-      
-      console.log("Cleaning up socket connection...");
       socketService.cleanup();
     };
   }, []);
@@ -495,6 +469,7 @@ export default function CallScreen() {
       }
 
       console.log("Hooked successfully:", res);
+      await saveLog(ContractAction.CUSTOMER_INCOMMING, null, channelName);
       setIsCalling(true);
       socketService.startHealthCheck(socketServiceInstance);
     } catch (error) {
@@ -536,15 +511,12 @@ export default function CallScreen() {
   }
 
   const toResult = (code: MessageCode, errorMessage = "") => {
-    console.log("Logic check 1:", [MessageCode.END_CALL, MessageCode.END_CALL_EARLY].includes(code));
-    console.log("Logic check 2:", isCompletedRef.current);
     let messageCode = code;
     if ([MessageCode.CALL_EXPIRED].includes(code)) {
       console.log("toResult CALL_EXPIRED");
     } else if (isCompletedRef.current) {
       messageCode = MessageCode.SUCCESS;
     }
-    console.log("messageCode:", messageCode);
     router.replace({
       pathname: "/result",
       params: { code: encodeURIComponent(messageCode), detail: encodeURIComponent(errorMessage) },
@@ -559,6 +531,74 @@ export default function CallScreen() {
       default: return 'gray';
     }
   };
+
+  const renderModalContent = () => {
+    const backToHome = () => {
+      setIsModalVisible(false);
+      toResult(MessageCode.END_CALL_EARLY);
+    }
+
+    switch (modalContent) {
+      case "DEVICE_DENIED":
+        return (
+          <View style={{ padding: 10, borderRadius: 10 }}>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Không tìm thấy microphone và camera!</Text>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng quay lại trang chủ.</Text>
+            <Button title="Quay lại trang chủ" onPress={backToHome} />
+          </View>
+        );
+      case "CONTRACT":
+        return (
+          <View style={{ width: "100%", padding: 10, borderRadius: 10 }}>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng xác thực hợp đồng.</Text>
+            <ScrollView contentContainerStyle={{ width: "100%", height: "auto" }}>
+              {pdfList.map((pdf, index) => (
+                <View key={index} style={{ height: 400, marginBottom: 20 }}>
+                  {pdf.url && (
+                    <WebView
+                    source={{ uri: `https://mozilla.github.io/pdf.js/web/viewer.html?file=${pdf.url}` }}
+                    style={{ flex: 1 }}
+                    originWhitelist={['*']}
+                    onError={(error) => {
+                      console.error("WebView error:", error);
+                    }}
+                  />
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+            <Button
+              title={isConfirming ? "Đang xác thực..." : "Xác thực hợp đồng"}
+              onPress={confirmContract}
+              disabled={isConfirming}
+            />
+            <Text></Text>
+            <Button title="Đóng" onPress={() => setIsModalVisible(false)} color="red"/>
+          </View>
+        );
+      case "RECONNECTING":
+        return (
+          <View style={{ padding: 10, borderRadius: 10 }}>
+            <Text style={{ fontSize: 16 }}>Kết nối mạng chập chờn...</Text>
+          </View>
+        );
+      case "DISCONNECTED":
+        return (
+          <View style={{ padding: 10, borderRadius: 10 }}>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Bạn đã bị mất kết nối.</Text>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Vui lòng quay lại trang chủ.</Text>
+            <Button title="Quay lại trang chủ" onPress={backToHome}></Button>
+          </View>
+        );
+      default:
+        return (
+          <View>
+            <Text>Unknown Content</Text>
+            <Button title="Đóng" onPress={() => setIsModalVisible(false)} color="red"/>
+          </View>
+        );
+    }
+  }
 
   return (
     <SafeAreaView style={styles.main}>
@@ -639,7 +679,7 @@ export default function CallScreen() {
       <Modal visible={isModalVisible} transparent={true}>
       <View style={styles.modalMask}>
         <View style={styles.modalContainer}>
-          {modalContent}
+          {renderModalContent()}
         </View>
       </View>
       </Modal>
@@ -721,7 +761,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: "90%",
-    height: "auto",
+    maxHeight: "80%",
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,

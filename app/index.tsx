@@ -18,12 +18,8 @@ export default function IndexScreen() {
 
   const [isCreatingMeeting, setIsCreatingMeeting] = useState(false);
 
-  useEffect(() => {
-    setApiService(null);
-  }, []);
-
   const initApiService = () => {
-    const res = cryptoService.decryptWS6Url(ws6Url);
+    const res = cryptoService.decryptWS6Url(ws6Url.replace(/([^:]\/)\/+/g, "$1"));
   
     // Set the config synchronously
     const updatedConfig = vkycTpcConfig;
@@ -44,6 +40,12 @@ export default function IndexScreen() {
       })
     );
   };
+
+  useEffect(() => {
+    if (apiService) {
+      createMeeting();
+    }
+  }, [apiService]);
 
   const createMeeting = async () => {
     if (isCreatingMeeting) {
@@ -101,21 +103,9 @@ export default function IndexScreen() {
       />
 
       <Button
-        title="Init API service"
-        onPress={initApiService}
-        disabled={!ws6Url.trim()}
-      />
-
-      <Text style={{ marginBottom: 10, fontSize: 16 }}></Text>
-
-      <Text style={{ marginBottom: 10, fontSize: 16 }}>
-        Init API service before creating a meeting.
-      </Text>
-
-      <Button
         title={isCreatingMeeting ? "Creating Meeting..." : "Create Meeting"}
-        onPress={createMeeting}
-        disabled={!apiService || isCreatingMeeting}
+        onPress={initApiService}
+        disabled={!ws6Url.trim() || isCreatingMeeting}
       />
 
       {/* Display error message */}
