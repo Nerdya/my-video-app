@@ -15,7 +15,7 @@
     "eas-submit-android": "eas submit --platform android --latest",
     "eas-submit-ios": "eas submit --platform ios --latest",
     "build-android": "cd android && ./gradlew assembleRelease",
-    "build-ios": "cd ios && xcodebuild -scheme VpageApp -configuration Release -archivePath build/VpageApp.xcarchive archive && xcodebuild -exportArchive -archivePath build/VpageApp.xcarchive -exportPath build/VpageApp.ipa -exportOptionsPlist exportOptions.plist"
+    "build-ios": "cd ios && xcodebuild -workspace vpageapp.xcworkspace -scheme vpageapp -configuration Release -archivePath build/vpageapp.xcarchive archive && xcodebuild -exportArchive -archivePath build/vpageapp.xcarchive -exportPath build/vpageapp.ipa -exportOptionsPlist exportOptions.plist"
   },
   "jest": {
     "preset": "jest-expo"
@@ -52,7 +52,7 @@
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
-    "react-native-vpage-sdk": "^0.0.65",
+    "react-native-vpage-sdk": "^0.0.66",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5"
   },
