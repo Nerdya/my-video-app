@@ -556,7 +556,7 @@ export default function CallScreen() {
                 <View key={index} style={{ height: 400, marginBottom: 20 }}>
                   {pdf.url && (
                     <WebView
-                    source={{ uri: `https://mozilla.github.io/pdf.js/web/viewer.html?file=${pdf.url}` }}
+                    source={{ uri: `https://docs.google.com/gview?embedded=true&url=${pdf.url}` }}
                     style={{ flex: 1 }}
                     originWhitelist={['*']}
                     onError={(error) => {

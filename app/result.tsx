@@ -39,14 +39,9 @@ export default function ResultScreen() {
   const renderButton = () => {
     switch (code) {
       case MessageCode.SUCCESS:
-      case MessageCode.END_CALL:
-      case MessageCode.END_CALL_EARLY:
         return null;
-      case MessageCode.CALL_EXPIRED:
-      case MessageCode.CALL_TIMEOUT:
-        return <Button title="Retry Call" onPress={toIndex} />;
       default:
-        return <Button title="Back to Index" onPress={toIndex} />;
+        return <Button title="Quay về trang chủ" onPress={toIndex} />;
     }
   }
 
