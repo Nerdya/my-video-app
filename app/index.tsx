@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, Text, Button, TextInput } from "react-native";
-import { createCryptoService, createAPIService } from "react-native-vpage-sdk";
+import { createCryptoService, createAPIService } from "@3tit-rnd/react-native-video-ekyc-sdk";
 import { EnvConfig, vkycTpcConfig } from "@/helpers/config";
 
 export default function IndexScreen() {
@@ -90,7 +90,7 @@ export default function IndexScreen() {
   return (
     <View style={{ padding: 20 }}>
       <Text style={{ marginBottom: 20, fontSize: 16 }}>
-        This is a demo app showcasing the integration of the `react-native-vpage-sdk` package for video calling functionality, using WS6.
+        This is a demo app showcasing the integration of the `@3tit-rnd/react-native-video-ekyc-sdk` package for video calling functionality, using WS6.
       </Text>
       <Text style={{ marginBottom: 10, fontSize: 16 }}>
         Input WS6 URL to create a meeting.

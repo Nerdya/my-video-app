@@ -11,7 +11,7 @@ import {
   Modal,
   Button,
 } from "react-native";
-import { ContractAction, createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "react-native-vpage-sdk";
+import { ContractAction, createAPIService, createVekycService, createSocketService, RtcSurfaceView, VideoSourceType } from "@3tit-rnd/react-native-video-ekyc-sdk";
 import { MessageCode, vkycTpcConfig } from "@/helpers/config";
 import { WebView } from "react-native-webview";
 

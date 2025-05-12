@@ -1,6 +1,6 @@
 # vpage-app
 
-An example app for using features, libraries, and other integrations with the `react-native-vpage-sdk` package.
+An example app for using features, libraries, and other integrations with the `@3tit-rnd/react-native-video-ekyc-sdk` package.
 
 ## Get started
 
