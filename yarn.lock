@@ -7,6 +7,21 @@
   resolved "https://registry.yarnpkg.com/@0no-co/graphql.web/-/graphql.web-1.1.2.tgz#9af8deaf3f236c1c6ee99cc5349051475e5dcc83"
   integrity sha512-N2NGsU5FLBhT8NZ+3l2YrzZSHITjNXNuDhC4iDiikv0IujaJ0Xc6xIxQZ/Ek3Cb+rgPjnLHYyJm11tInuJn+cw==
 
+"@3tit-rnd/react-native-video-ekyc-sdk@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@3tit-rnd/react-native-video-ekyc-sdk/-/react-native-video-ekyc-sdk-0.1.2.tgz#85c9df00e6e877e06a2cbd8c0debb14bab166079"
+  integrity sha512-6hs95CJnKPmljWnHYMAzBHqquxLQ2+MDZg5d4y9MSCgxCIpmINcJ4/uN528BJ3H5h1+Cb1pqvOLixN4Y/7uNFA==
+  dependencies:
+    "@stomp/stompjs" "^7.1.1"
+    agora-react-native-rtm "^1.5.1"
+    axios "^1.8.4"
+    react "^19.0.0"
+    react-native "^0.78.1"
+    react-native-agora "^4.5.2"
+    react-native-crypto-js "^1.0.0"
+    react-native-public-ip "^1.0.2"
+    sockjs-client "^1.6.1"
+
 "@ampproject/remapping@^2.2.0":
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.3.0.tgz#ed441b6fa600072520ce18b43d2c8cc8caecc7f4"
@@ -8728,21 +8743,6 @@ react-native-screens@~4.4.0:
   dependencies:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
-
-react-native-vpage-sdk@^0.0.75:
-  version "0.0.75"
-  resolved "https://registry.yarnpkg.com/react-native-vpage-sdk/-/react-native-vpage-sdk-0.0.75.tgz#4a45161b7d9fa6ea0060b7a2e6c1c33b8d4b9202"
-  integrity sha512-Z6/wa809Olz37V8gRgeytBIbsBNvJhNEnuvfsDUPijRIuQqnrHo2qa7NH77cY7WoTj01ZuLGZIdAcRdb3YTIlw==
-  dependencies:
-    "@stomp/stompjs" "^7.1.1"
-    agora-react-native-rtm "^1.5.1"
-    axios "^1.8.4"
-    react "^19.0.0"
-    react-native "^0.78.1"
-    react-native-agora "^4.5.2"
-    react-native-crypto-js "^1.0.0"
-    react-native-public-ip "^1.0.2"
-    sockjs-client "^1.6.1"
 
 react-native-web@~0.19.13:
   version "0.19.13"
